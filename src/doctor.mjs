@@ -117,7 +117,9 @@ export default async function doctor(dir, opts = {}) {
       const pub = join(dir, '.github', 'workflows', 'publish.yml')
       if (existsSync(pub)) {
         const w = readFileSync(pub, 'utf8')
-        if (!/v0\.|startsWith\(['"]v0\./.test(w)) fail('publish-gate', '.github/workflows/publish.yml does not refuse 0.x refs (the OIDC ladder gate)')
+        // Two accepted shapes: the `startsWith(github.ref_name,'v0.')` job
+        // guard, or the OIDC ladder's `case "$V" in 0.*)` version gate.
+        if (!/startsWith\(['"]v0\.|0\.\*\)/.test(w)) fail('publish-gate', '.github/workflows/publish.yml does not refuse 0.x refs (the OIDC ladder gate)')
       }
       // 5. npm test
       if (pkg.scripts?.test) {

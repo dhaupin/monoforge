@@ -3,6 +3,7 @@
 // Law: generated green is never shipped - the doctor refuses placeholder
 // text, missing entries, and broken gates; the lock refuses a dirty tree.
 import { resolve } from 'node:path'
+import { readFileSync } from 'node:fs'
 
 const Help = `monoforge - the struct-family factory
 
@@ -25,6 +26,10 @@ const dir = resolve(arg2 || arg1 || '.')
 const show = (r) => { console.log(JSON.stringify(r, null, 2)); process.exit(r.ok ? 0 : 1) }
 
 if (!cmd || cmd === 'help' || cmd === '--help') { console.log(Help); process.exit(0) }
+// The version truth is package.json (the family rule, flowforge#28): the
+// publish lane's verify job probes the INSTALLED bin with --version, and
+// this is the bare global it answers.
+if (cmd === '--version') { console.log(JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8')).version); process.exit(0) }
 if (cmd === 'new') {
   const stamp = (await import('../src/stamp.mjs')).default
   show(await stamp(resolve(process.argv[3] || '.')))
