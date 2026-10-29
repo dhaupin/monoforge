@@ -3,7 +3,7 @@ version: '1.0'
 permalink: /
 layout: default
 title: monoforge
-description: The fleet factory - stamps fleet repos from the proven template blocks (docs system, workflows, release ladder, gates), doctors them with the truth battery, and locks them with a checksum. The doctor refuses unfilled FORGE-TODO slots: generated green is never shipped.
+description: "The fleet factory - stamps fleet repos from the proven template blocks (docs system, workflows, release ladder, gates), doctors them with the truth battery, and locks them with a checksum. The doctor refuses unfilled FORGE-TODO slots: generated green is never shipped."
 ---
 # monoforge
 
