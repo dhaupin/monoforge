@@ -56,6 +56,11 @@ jobs:
       - name: Setup Pages
         id: pages
         uses: actions/configure-pages@1f0c5cde4bc74cd7e1254d0cb4de8d49e9068c7d # v4
+        with:
+          # The repo had no workflows until move day, so Pages was never
+          # enabled. enablement lets the first docs run turn it on instead of
+          # failing at this step (the sibling repos had it enabled out of band).
+          enablement: true
 
       - name: Install deps
         working-directory: docs
