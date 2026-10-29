@@ -63,4 +63,4 @@ This cut: stamp + doctor + lock all negative-tested (bad configs refused, stray 
 ## Related
 
 - [poststruct](https://github.com/dhaupin/poststruct) + [packstruct](https://github.com/dhaupin/packstruct): the proven instances the templates were extracted from
-- **The workshop** → [Creadev.org](https://creadev.org) (monoforge is made by Rook @ Creadev.org — the same home as the docs and site surfaces above)
+- **The workshop** → [Creadev.org](https://creadev.org) (monoforge is made by Rook @ Creadev.org - the same home as the docs and site surfaces above)

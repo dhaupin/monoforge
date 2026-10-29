@@ -113,13 +113,21 @@ export default async function doctor(dir, opts = {}) {
       }
       if (!pkg.description || pkg.description.length < 10) warn('description', 'package.json description missing or too thin')
       if ((pkg.engines?.node || '') < '>=20') warn('engines', 'engines.node floor not >=20 (house runtime floor)')
-      // 4. publish.yml refuses 0.x
+      // 4. publish.yml refuses 0.x AND carries no publish token
       const pub = join(dir, '.github', 'workflows', 'publish.yml')
       if (existsSync(pub)) {
         const w = readFileSync(pub, 'utf8')
         // Two accepted shapes: the `startsWith(github.ref_name,'v0.')` job
         // guard, or the OIDC ladder's `case "$V" in 0.*)` version gate.
         if (!/startsWith\(['"]v0\.|0\.\*\)/.test(w)) fail('publish-gate', '.github/workflows/publish.yml does not refuse 0.x refs (the OIDC ladder gate)')
+        // The family law (rule #3: the NPM_TOKEN bug was caught twice - in the
+        // live workflow and in the template - so it becomes a gate). A real
+        // `secrets.NPM_TOKEN` reference is a violation; a comment that merely
+        // names the removed line is not. Strip comment lines, then scan.
+        const codeLines = w.split('\n').filter((l) => !/^\s*#/.test(l)).join('\n')
+        if (/secrets\.NPM_TOKEN|NODE_AUTH_TOKEN/.test(codeLines)) {
+          fail('publish-token', '.github/workflows/publish.yml references a publish token (secrets.NPM_TOKEN / NODE_AUTH_TOKEN) - the family law is OIDC trusted publishing only, no publish tokens anywhere')
+        }
       }
       // 5. npm test
       if (pkg.scripts?.test) {

@@ -1,4 +1,4 @@
-# horcrux/prds/prd-monoforge.md — compiled PRD landing (2026-10-26)
+# horcrux/prds/prd-monoforge.md - compiled PRD landing (2026-10-26)
 
 This file compiles the monoforge repo's two working PRDs from `dhaupin/monoforge/labs/` so the gistory vault carries the guide alongside `prd-eyes.md` and `prd-poststruct.md` (the mounts' and upstream's labs copies stay canonical; move-day takes this compiled file along as the landed copy).
 

@@ -97,9 +97,21 @@ rmSync(d6a, { recursive: true, force: true })
 rmSync(d6b, { recursive: true, force: true })
 rmSync(d6c, { recursive: true, force: true })
 
+// 7. the publish-token law (rule #3: the NPM_TOKEN bug was caught twice - in
+//    the live publish.yml and in the template - so the doctor gates it). A
+//    real `secrets.NPM_TOKEN` reference fails; a comment naming the removed
+//    line does not.
+const d7 = mkdtempSync(join(tmpdir(), 'forge-token-'))
+mkdirSync(join(d7, '.github/workflows'), { recursive: true })
+writeFileSync(join(d7, 'package.json'), JSON.stringify({ name: 'tok-probe', version: '0.9.0', description: 'a probe with a token-bearing publish lane' }))
+writeFileSync(join(d7, '.github/workflows/publish.yml'), "name: publish\non: { push: { tags: ['v*'] } }\njobs:\n  publish:\n    runs-on: ubuntu-latest\n    if: ${{ !startsWith(github.ref_name, 'v0.') }}\n    steps:\n      - run: npm publish --provenance\n        env:\n          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}\n")
+const r7 = await doctor(d7)
+assert(r7.findings.some((f) => f.id === 'publish-token' && f.level === 'fail'), 'a publish token (secrets.NPM_TOKEN / NODE_AUTH_TOKEN) must fail the doctor by id (the family law: OIDC only, no publish tokens)')
+rmSync(d7, { recursive: true, force: true })
+
 rmSync(base, { recursive: true, force: true })
 if (fails.length) { console.error('SELF-TEST FAIL:\n  ' + fails.join('\n  ')); process.exit(1) }
-console.log('monoforge self-test: bad-config refused, stray dir refused, stamp ok, unfilled doctor FAIL, refilled doctor PASS, canon dangling/UNSET refused, canon-free silent - PASS')
+console.log('monoforge self-test: bad-config refused, stray dir refused, stamp ok, unfilled doctor FAIL, refilled doctor PASS, canon dangling/UNSET refused, canon-free silent, publish token refused - PASS')
 process.exit(0)
 
 function require3(p) { return rf(p, 'utf8') }

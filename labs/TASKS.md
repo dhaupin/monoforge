@@ -2,14 +2,14 @@
 
 Rolling work log for the monoforge staging tree, in the family TASKS convention. The two PRDs here are carried byte-exact from dhaupin/monoforge (labs/, upstream commit f8e45fb):
 
-- prd-factory.md — the factory itself (new / doctor / lock / cut verbs)
-- prd-creadev-mono.md — the component-family profile's first customer
+- prd-factory.md - the factory itself (new / doctor / lock / cut verbs)
+- prd-creadev-mono.md - the component-family profile's first customer
 
-## 2026-10-26 — the mount stands up in gistory
+## 2026-10-26 - the mount stands up in gistory
 
 - The staged tool is 0.9.0 UNCHANGED: the tree unpacks from `horcrux/monoforge-0.9.0-lock.tar.gz` (tarball-first landing, sha-gated ferry), because a mount and its lock archive must not be allowed to drift apart in transit.
-- What the mount ADDS over the standalone repo, beyond the tool: `labs/TASKS.md` (this file) and the horcrux receipts (`horcrux/README.md`, lock archive in place). The minted provisioner stone stays owned by dhaupin/monoforge — it does not ride this mount (size class already burned the payload lane once tonight).
-- Family battery lane (own CI under gistory `staging-hosts`): the self-test `node test/run.mjs` — stamp + doctor + lock refusals per PRD §5 — runs straight off the zero-dep tree; no install step needed.
+- What the mount ADDS over the standalone repo, beyond the tool: `labs/TASKS.md` (this file) and the horcrux receipts (`horcrux/README.md`, lock archive in place). The minted provisioner stone stays owned by dhaupin/monoforge - it does not ride this mount (size class already burned the payload lane once tonight).
+- Family battery lane (own CI under gistory `staging-hosts`): the self-test `node test/run.mjs` - stamp + doctor + lock refusals per PRD §5 - runs straight off the zero-dep tree; no install step needed.
 - tar-move-plan.md carries the monoforge row: → dhaupin/monoforge (repo already exists with labs/ + horcrux/; move day merges the tool tree onto it and keeps those dirs intact).
 
 ## Honest limits tonight
@@ -40,13 +40,28 @@ Rolling work log for the monoforge staging tree, in the family TASKS convention.
 - The test.yml tri-pin comment sheds a stale issue pointer that pre-dated the pins it claimed to explain (the family-tool resolvers need no outside reference; the pins are their own comment above). The standalone battery shape is unchanged: npm ci rides the EXACT pins (eyestruct 1.0.0, packstruct 1.0.0, crashtest 1.1.0), then npm run check.
 - This row is the tree's last change before move day: the staging-tars ferry re-cuts mounts/public/monoforge/boot/tars/monoforge-staging-git-2026-10-29.tar.gz from exactly this tree, and the receiving agent untars THAT tar into dhaupin/monoforge's staging branch (labs/ and horcrux/ stay intact per tar-move-plan.md; the boot weights have never fit).
 
-## 2026-10-29 — move day: the tar lands on dhaupin/monoforge `staging`
+## 2026-10-29 - move day: the tar lands on dhaupin/monoforge `staging`
 
 The receiving side of the handoff. The tar moved from gistory to the standalone repo and the staging branch now carries the whole mount tree.
 
-- **The tar, sha-gated before anything moved:** `mounts/public/monoforge/boot/tars/monoforge-staging-git-2026-10-29.tar.gz` from `dhaupin/gistory @ main` (the tar is unchanged by `c8d6afc`). sha256 `8b836a1095d695a1397c864a5951e0f8b5e2f14e4b0fe40308cddf177bd7dec2`, 853,705 bytes — both match Rook's handoff exactly, so the receiving bytes are the sending bytes.
-- **staging branch filled from the tar.** `dhaupin/monoforge` `staging` starts at `main` (`f8e45fb`) and overlays the tar tree on top (119 tracked files: the tool, `templates/`, `web/` + `docs/` rig, the workflows, the receipts). `horcrux/` (`monoforge-0.9.0-lock.tar.gz` + the provisioner stone) is `main`-owned and the mount never carried it, so it stays intact; `labs/` merges (the tar's unwrapped PRDs + `TASKS.md` win, since they are the flowing-prose generation of the same content). The tar's synthetic `.git` (a 4-commit pre-tar snapshot) is deliberately NOT used — the repo keeps its own history.
-- **The staging CI flow lands with the tree (flowforge#30 / monoforge#20).** The repo had no workflows; per the pattern the first ones carry the flow from birth: `test.yml` pushes on `main` AND `staging`; `docs.yml` watches both and its `deploy` job is gated `if: github.ref == 'refs/heads/main'` (the trap — once the integration branch is in the trigger, the trigger no longer keeps staging out of production, the guard does). The same flow is baked into `templates/.github/workflows/` so a stamped repo inherits it (issue #20's ordering warning: a template cut before this lands ships the old shape).
-- **Battery green on the filled tree:** `npm ci` at the EXACT pins (eyestruct 1.0.0, packstruct 1.0.0, crashtest 1.1.0), then `npm run check` — self-test PASS (bad-config refused, stray dir refused, stamp ok, unfilled doctor FAIL, refilled doctor PASS, canon dangling/UNSET refused, canon-free silent), version-truth PASS, 21/21 ship-lane tests, 5 docs gates PASS, language gate PASS. All 7 workflow YAMLs parse (the birth-gate class: an unquoted step name dies at GitHub's parser with zero check runs).
-- **`horcrux/rig-overlay.patch` is already converged.** The patch (the lock→rig convergence recipe Rook named in the handoff) does not apply against this tar — the tar already carries every byte it produced (the SHA-pinned actions, the shell-residue gate, the rig docs engine). Nothing to apply; the overlay is historical.
+- **The tar, sha-gated before anything moved:** `mounts/public/monoforge/boot/tars/monoforge-staging-git-2026-10-29.tar.gz` from `dhaupin/gistory @ main` (the tar is unchanged by `c8d6afc`). sha256 `8b836a1095d695a1397c864a5951e0f8b5e2f14e4b0fe40308cddf177bd7dec2`, 853,705 bytes - both match Rook's handoff exactly, so the receiving bytes are the sending bytes.
+- **staging branch filled from the tar.** `dhaupin/monoforge` `staging` starts at `main` (`f8e45fb`) and overlays the tar tree on top (119 tracked files: the tool, `templates/`, `web/` + `docs/` rig, the workflows, the receipts). `horcrux/` (`monoforge-0.9.0-lock.tar.gz` + the provisioner stone) is `main`-owned and the mount never carried it, so it stays intact; `labs/` merges (the tar's unwrapped PRDs + `TASKS.md` win, since they are the flowing-prose generation of the same content). The tar's synthetic `.git` (a 4-commit pre-tar snapshot) is deliberately NOT used - the repo keeps its own history.
+- **The staging CI flow lands with the tree (flowforge#30 / monoforge#20).** The repo had no workflows; per the pattern the first ones carry the flow from birth: `test.yml` pushes on `main` AND `staging`; `docs.yml` watches both and its `deploy` job is gated `if: github.ref == 'refs/heads/main'` (the trap - once the integration branch is in the trigger, the trigger no longer keeps staging out of production, the guard does). The same flow is baked into `templates/.github/workflows/` so a stamped repo inherits it (issue #20's ordering warning: a template cut before this lands ships the old shape).
+- **Battery green on the filled tree:** `npm ci` at the EXACT pins (eyestruct 1.0.0, packstruct 1.0.0, crashtest 1.1.0), then `npm run check` - self-test PASS (bad-config refused, stray dir refused, stamp ok, unfilled doctor FAIL, refilled doctor PASS, canon dangling/UNSET refused, canon-free silent), version-truth PASS, 21/21 ship-lane tests, 5 docs gates PASS, language gate PASS. All 7 workflow YAMLs parse (the birth-gate class: an unquoted step name dies at GitHub's parser with zero check runs).
+- **`horcrux/rig-overlay.patch` is already converged.** The patch (the lock→rig convergence recipe Rook named in the handoff) does not apply against this tar - the tar already carries every byte it produced (the SHA-pinned actions, the shell-residue gate, the rig docs engine). Nothing to apply; the overlay is historical.
 - **No version bump** (0.9.0 = 0.9.0). The repo's own `horcrux/` holds the real 0.9.0 lock; the mount tar is the receipts carry, not the history source.
+
+---
+
+### 2026-10-29 - session: the release ladder (OIDC) adopted from eyestruct
+
+Scope: eyestruct is the fleet template (its CI works and was updated most recently). Adopt its proven release shape here; the family law is OIDC trusted publishing only. Receipts `dhaupin/eyestruct@4e2b552` (`.github/workflows/publish.yml`, `scripts/release-notes.cjs`, `scripts/verify-release.cjs`, `tests/release-verify.test.js`).
+
+- **`.github/workflows/publish.yml` is now the 3-job ladder** (publish / release / verify) with a `verify-only` dispatch mode. It replaces the single job that authenticated with `secrets.NPM_TOKEN` - the exact violation the family law forbids. The `release.yml` duplicate is gone. The publish job keeps the OIDC publish + the 0.x gate; the release job cuts the GH release from the tag with notes extracted from the changelog; the verify job re-proves the cut against npm and the GH release. The gap the shape closes: a publish step can go green while the registry result is wrong, because nothing asserted the tarball in between.
+- **`templates/.github/workflows/publish.yml` carries the same OIDC ladder** (tokenized `__NAME__`), so every stamped repo inherits the fix from birth instead of the old `secrets.NPM_TOKEN` shape. This is the propagation that matters: the template was teaching the violation.
+- **`scripts/release-notes.cjs` + `scripts/verify-release.cjs`** - the two generic family scripts. Two local additions to the ladder: a named `--allow` prefix list (the factory ships template dotfiles on purpose) and a named SKIP when a package declares no `main`/`exports`/`bin`.
+- **`test/release-verify.test.cjs`** runs the pack ladder OFFLINE every push (the standing receipt eyestruct carries): a real `npm pack` case and a doctored-tarball refusal by name.
+- **`bin/forge.mjs --version`** answers from `package.json`, so the ladder's installed-bin probe resolves.
+- **`src/doctor.mjs`** - the `publish-gate` check accepts the OIDC ladder's `case "$V" in 0.*)` version gate; and a NEW `publish-token` check (rule #3: the NPM_TOKEN bug was caught twice - in the live workflow and in the template - so it becomes a gate) fails a tree whose publish.yml references `secrets.NPM_TOKEN` or `NODE_AUTH_TOKEN`. `test/run.mjs` gains the negative case for it.
+- **Verification:** `npm test` 23 pass / 0 fail (self-test now asserts the publish-token refusal). `npm run lint:docs` green. `npm run lint:language` green. `verify-release` pack ladder PASS.
+- **No version bump** (0.9.0 = 0.9.0); CI/plumbing, not a released surface.

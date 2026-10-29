@@ -26,12 +26,12 @@ if (start === -1) {
 // 1.1.0 dry run, the first lane run that actually rides this extraction).
 const headingLineEnd = changelog.indexOf('\n', start)
 const rest = changelog.slice(headingLineEnd + 1)
+// The section runs to the next release heading, or to EOF when this is the
+// newest (and last) heading - the first cut's own case. An absent following
+// heading is not an empty section; the emptiness check below is the real
+// judge.
 const next = rest.indexOf('\n## [')
-if (next === -1) {
-  process.stderr.write(`release-notes: "## [${version}]" is the last heading but its section is empty\n`)
-  process.exit(1)
-}
-const section = rest.slice(0, next).trim()
+const section = (next === -1 ? rest : rest.slice(0, next)).trim()
 if (!section) {
   process.stderr.write(`release-notes: the "## [${version}]" section is empty\n`)
   process.exit(1)
