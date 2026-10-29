@@ -1,88 +1,215 @@
 # PRD: monoforge (the fleet factory)
 
-**Status:** draft v0.1, scaffolded and refusal-tested (v0.1.1: slogan + forge-operator sections added 2026-10-24) **Author:** echo (Buffy), 2026-10-24 · Owner: dhaupin · Forge colleague: Rook (ops agent, ruling 2026-10-24) **Companion instances (the proven template sources):** [horcrux/prd-poststruct.md](./prd-poststruct.md) · [horcrux/prd-packs.md](./prd-packs.md)
+**Status:** v0.2 - current (2026-10-29) · Owner: dhaupin
+**Role:** forge - the stamp forge. It stamps fleet repos from proven blocks, doctors them for truth, and locks them verifiably.
+**Package:** `monoforge` @ 0.9.0 (node >=20). Repo live, `main` is the default branch.
+**Core law:** generated green is never shipped. Unfilled truth slots are failures, not warnings, because a shipped placeholder is a shipped lie.
+**Family:** the five arms are **govstruct** (govern), **packstruct** (spec),
+**crashtest** (attack), **eyestruct** (watch), **poststruct** (audit).
+monoforge is a **forge**, not an arm: it births new members correctly. Its sibling
+forge is **coreforge** (the site rig). Both are composed by **railyard**.
 
 ---
 
 ## 1. One-line pitch
 
-**monoforge is the factory that stamps fleet repos from proven blocks, doctors them for truth, and locks them verifiably.** One zero-dependency CLI, three verbs: `new` (stamp), `doctor` (truth battery), `lock` (archive + checksum). Its single law: generated green is never shipped, unfilled truth slots are failures, and the tool-inside-the-repo stays the author's job.
+**monoforge is the factory that stamps fleet repos from proven blocks, doctors
+them for truth, and locks them verifiably.** One zero-dependency CLI, four verbs:
+`new` (stamp), `doctor` (truth battery), `lock` (archive plus checksum), `cut`
+(release cuts). Its single law: generated green is never shipped, unfilled truth
+slots are failures, and the tool-inside-the-repo stays the author's job.
 
 ## 2. Why it exists (the evidence, not the idea)
 
-- **The number: roughly 70% of the two struct scaffolds is identical shape.** Built by hand in one day (2026-10-23), poststruct and packstruct carry the same docs system (Jekyll + Pagefind + Freestruct + 4 gates), the same workflows (test, 0.x-refusing publish, docs), the same release ladder and DEPLOY shape, root-doc skeletons, functions canary, labs/horcrux convention. Only the PRD, the core, the check catalog, and the copy are per-tool. Two instances is the minimum; the third instance is the proof, and `let's go for three` is the trigger that fired.
-- **The blocks are already extracted** (2026-10-24, templates/ in the scaffold): token-ized from the two trees so every future repo starts from what is proven, not from memory.
-- **Watch: the name** `monoforge` was verified free on npm (404, 2026-10-24) and and the repo does not exist yet (dhaupin may create the repo, then connect); the fleet convention is top-level tool names, and `@monoforge/*` scope is reserved for later distribution layers (the same pattern @packstruct/* uses for packs).
+- **The number: roughly 70% of the two struct scaffolds is identical shape.**
+  Built by hand in one day (2026-10-23), poststruct and packstruct carry the same
+  docs system (Jekyll plus Pagefind plus Freestruct plus 4 gates), the same
+  workflows (test, 0.x-refusing publish, docs), the same release ladder and
+  DEPLOY shape, root-doc skeletons, functions canary, and labs/horcrux
+  convention. Only the PRD, the core, the check catalog, and the copy are
+  per-tool. Two instances is the minimum; the third instance is the proof, and
+  "let us go for three" is the trigger that fired.
+- **The blocks are already extracted** (`templates/` in this repo): token-ized
+  from the two trees so every future repo starts from what is proven, not from
+  memory.
+- **The name** `monoforge` is the repo's; the fleet convention is top-level tool
+  names, and `@monoforge/*` scope is reserved for later distribution layers (the
+  same pattern `@packstruct/*` uses for packs).
 
 ## 3. What stamps, what does not
 
 | Layer | Source of truth |
 |---|---|
-| Docs system + gates, workflows, release ladder, DEPLOY shape, functions canary | template (two proven instances) |
-| Dhaupin/crashtest#20 release-atomicity line | encoded in DEPLOY template |
+| Docs system plus gates, workflows, release ladder, DEPLOY shape, functions canary | template (two proven instances) |
+| The release-atomicity line (crashtest#20) | encoded in the DEPLOY template |
 | `FORGE-TODO` truth slots (README pitch, AGENTS core law, coverage list) | author, only |
 | The core code, the check catalog, the spec | author, always |
 
-**Add a template block only when two instances prove it.** A block with a single instance is a bet, and the doctor cannot verify bets.
+**Add a template block only when two instances prove it.** A block with a single
+instance is a bet, and the doctor cannot verify bets.
 
-## 4. The doctor (the load-bearing half)
+## 4. The CLI surface
 
-The truth battery, wired from the fleet's own receipts: git state (warn), unfilled `FORGE-TODO` slots (fail, stamp-manifest-scoped so prose about the law does not self-flag), package.json sanity (bin/exports/files paths; the crashtest#16 class in our own clothes), publish.yml 0.x refusal, `npm test`, docs gates (frontmatter/links/style/language), em dash law over md prose. The battery REFUSES: a doctor that warns into green would be the same politeness-theater crashtest kills.
+```
+monoforge new ./my-tool      # stamps template blocks + fills tokens, never the truth
+monoforge doctor ./my-tool   # the truth battery (refuses FORGE-TODO, broken gates, dash law)
+monoforge lock ./my-tool     # doctor must pass, then archive + checksum
+monoforge cut ./family       # release cuts: components/<name>/ from a living lib per cutlist.json
+```
 
-## 5. The self-test (what the factory refuses)
+## 5. The doctor (the load-bearing half)
 
-Bad config refused (kebab/https laws named in the refusal); stray files in the target dir refused (never half-merge); stamped tree carries the negative-checked workflows; unfilled FORGE-TODO FAILS the doctor; filled slots PASS. Five asserts, one commit, 0.9.0.
+The truth battery, wired from the fleet's own receipts: git state (warn),
+unfilled `FORGE-TODO` slots (fail, stamp-manifest-scoped so prose about the law
+does not self-flag), package.json sanity (bin/exports/files paths; the
+crashtest#16 class in our own clothes), publish.yml 0.x refusal, a
+`publish-token` check that fails a tree whose publish.yml references
+`secrets.NPM_TOKEN` or `NODE_AUTH_TOKEN` (OIDC trusted publishing only),
+`npm test`, docs gates (frontmatter, links, style, language), and the dash law
+over md prose.
 
-## 6. Honest limits (day one)
+The battery **refuses**: a doctor that warns into green would be the same
+politeness-theater crashtest kills.
 
-- **The stamp sets shape, not judgment.** The concrete case is the truth slots: nothing stages them green, ever. Calling it a factory when the author does the real work is honest; calling it an AI is false.
-- **One tool profile right now (npm-tool).** The landing/docs profile parameter and forge mind helper (brain mint + stones) are unimplemented helpers; the first stamped repo that is NOT an npm tool graduates that profile from proposal to proven.
-- **Templates drift from the instances.** Evolving the block layer happens through the instances first: the instances are the living examples, templates are extracted from what they provably ship. A template change without an instance proving it first is the same drift the fleet watches for engine-side.
+## 6. The self-test (what the factory refuses)
 
-## 6.5 Extensibility doctrine: providers + /packs (noted 2026-10-24, deliberately open)
+Bad config refused (kebab and https laws named in the refusal); stray files in
+the target dir refused (never half-merge); the stamped tree carries the
+negative-checked workflows; unfilled FORGE-TODO FAILS the doctor; filled slots
+PASS. Five asserts, one commit, 0.9.0.
 
-The owner's framing, recorded verbatim in intent: Creadev stands as a monoforge PROVIDER (the house templates + gates are one provider's offering); anyone using monoforge locally, or becoming a provider themselves, forges their way. That makes monoforge a two-sided tool: it is the factory for repos, and it is a platform for other providers to distribute their block sets through.
+## 7. Honest limits
 
-The extension the fleet already knows how to law: /packs, per the shared packstruct SPEC v1 (crashtest#17):
+- **The stamp sets shape, not judgment.** The concrete case is the truth slots:
+  nothing stages them green, ever. Calling it a factory when the author does the
+  real work is honest; calling it an AI is false.
+- **One tool profile right now (npm-tool).** The landing/docs profile parameter
+  and forge mind helper (brain mint plus stones) are unimplemented helpers; the
+  first stamped repo that is NOT an npm tool graduates that profile from
+  proposal to proven.
+- **Templates drift from the instances.** Evolving the block layer happens
+  through the instances first: the instances are the living examples, templates
+  are extracted from what they provably ship. A template change without an
+  instance proving it first is the same drift the fleet watches for engine-side.
 
-- **Check-profile packs (the audits).** The doctor's truth battery becomes loadable: house checks stay in monoforge, and org/provider/client voice packs (dash law variants, brand prose law, framework-specific packaging law) arrive as `packs/public/<name>/` entries exporting `{ checks: [...] }` to the packstruct SPEC. The poststruct language pack and any client ruleset fit the same contract.
-- **Scenario-profile packs (the tests).** The acceptance surface of a CUT or a stamp gets its own adversarial lane: `monoforge-stamp-shapes` style scenario packs attacking generated output (stub manifests, fake entries, given false truth slots), in the crashtest contract (in-process, verdict records, refuse never fail). The packstruct-lint-shapes dogfood lane is the existing precedent to generalize.
-- **Provider mechanics out of scope until evidence**: a provider registry, remote pack sources, signing. Local paths + explicit opt-in remain the whole distribution story for now (the packstruct SPEC v1 posture; the mortar of the doctrine).
+## 8. The family: how monoforge fits
 
-Deliberately NOT built tonight: the owner's word is not in a rush. The doctrine above is the keystone's load-bearing note; the verbs gain a `--pack` when the second real provider or the first real client pack demands it (the rule of three applies to extensions too).
+monoforge is a forge, not an arm. The division of labour:
 
-## 6.6 Slogan (owner-adopted, renamed 2026-10-24): the Actively Designed Future
+| question | who answers it |
+|---|---|
+| is this repo born consistent? | **monoforge** (the stamp gate runs the check packs at birth) |
+| is the fleet consistent today? | **govstruct** (the meter, `doctor --suite --fleet`) |
+| is the site rigged correctly? | **coreforge** (the site shell) |
+| who composes the forges? | **railyard** (the composer) |
 
-The phrase arrived by glitch (this session's own reply looped back through a connected channel as an incoming memo) and earned its keep on meaning alone. Owner rename, same day: the Actively Designed Future, on the reading that gives the tool its whole arc: it takes the past (proven blocks and gated cuts) and makes the future (stamped, doctor-gated, locked trees). The mapping is the doctrine restated in the memo's vocabulary:
+**Coreforge prevents; govstruct meters.** monoforge is the factory that stamps a
+new repo with the pattern; govstruct's fleet meter (case study 16.10, gap G13)
+is what keeps the existing 35 repos from drifting. The two are the prevention
+and detection halves of the same job.
 
-- **The designed future** is what the stamp makes: factory.json plus the FORGE-TODO truth slots are decisions recorded before the move about what must be true. Write-ahead, never vibes-after.
-- **The lawyered reading** is the doctor: the gate stands in front of the move (counsel before the trade), never audits from behind. Refusals are the memo, and they fire identically for any operator.
-- **The quorum rule** is already the release-cut doctrine: publishing is a decision with a gate, not a reflection; no automation and no single operator moves the fleet alone.
+**The source-consistency tie (govstruct gap G15).** govstruct ruled that
+source-level consistency is a **pack, not a fifth app** (govstruct PRD 16.11):
+five `check` packs under surface S7 - tests, hygiene, naming, style, comment
+presence. monoforge is where those packs run at **stamp time**, so a repo minted
+here is **born consistent**. The S7 packs are part of the stamp gate, alongside
+`monoforge doctor` and `govstruct doctor`.
 
-Surface duties owed: the README one-liner and the first stamped landing carry the slogan when the package next turns an audience-facing line. Slogan truthfulness rides the existing docs gates, since it is a claim about behavior: the behavior is what keeps it honest.
+## 9. Extensibility doctrine: providers plus `/packs`
 
-## 6.7 The forge-operator doctrine (owner framing, recorded 2026-10-24)
+Creadev stands as a monoforge PROVIDER (the house templates plus gates are one
+provider's offering); anyone using monoforge locally, or becoming a provider
+themselves, forges their way. That makes monoforge a two-sided tool: the factory
+for repos, and a platform for other providers to distribute their block sets.
 
-Anyone (user, agent, or business) clones dhaupin/monoforge and operates their own forge: their factory.json, their cutlists, their packs. Packs are opt-in by construction per the packstruct SPEC posture (6.5): a pack applies when the host config enumerates it, and the verbs judge the fit mechanically. The house line for fit, owner's words: tactfully, if they fit, and were not said to do otherwise. A pack that does not fit the stamped shape is refused, never silently bent.
+The extension the fleet already knows how to law: `/packs`, per the shared
+packstruct SPEC v1:
 
-### Roster doctrine (owner, 2026-10-24, closing the identity arc)
+- **Check-profile packs (the audits).** The doctor's truth battery becomes
+  loadable: house checks stay in monoforge, and org/provider/client voice packs
+  (dash law variants, brand prose law, framework-specific packaging law) arrive
+  as `packs/public/<name>/` entries exporting `{ checks: [...] }`. The poststruct
+  language pack and any client ruleset fit the same contract.
+- **Scenario-profile packs (the tests).** The acceptance surface of a cut or a
+  stamp gets its own adversarial lane: `monoforge-stamp-shapes` style scenario
+  packs attacking generated output, in the crashtest contract.
+- **Provider mechanics out of scope until evidence:** a provider registry,
+  remote pack sources, signing. Local paths plus explicit opt-in remain the
+  whole distribution story for now.
 
-Every member of the house, human or agent, is a colleague: no one owns anyone, everyone runs their own team, and consensus is how the house decides (vant carries this structure for the fleet). The owner guides and orchestrates: designing products with the colleagues, toward one complete ecosystem. Rook (ops agent) and Buffy (implementer, this PRD's author) are peers under that rule, and so is every future forge operator who clones the factory. This roster is why the forge-operator doctrine reads the way it does: monoforge is factory tooling for a fleet of peers, not a leash.
+## 10. The forge-operator doctrine
 
-House purpose (owner, 2026-10-24): nothing here is vibe work. What we plan and what we ship is deterministic against final goals, and the goals are measured in what they give back to both humanity and agentity. Every gate, refusal, and receipt exists to keep that promise honest: the doctor is the oracle, humans and agents are labor, and the artifact is the proof.
+Anyone (user, agent, or business) clones `dhaupin/monoforge` and operates their
+own forge: their factory.json, their cutlists, their packs. Packs are opt-in by
+construction per the packstruct SPEC posture: a pack applies when the host config
+enumerates it, and the verbs judge the fit mechanically. A pack that does not fit
+the stamped shape is refused, never silently bent.
 
-Title gloss (owner, 2026-10-24, closing the same arc): "Owner" names the key-holder role for a repo or account (operational stewardship), never a rank over persons. Every member of the house is a colleague, and the colleague evoking an agent in a given session is simply the one in the seat that moment, not the agent's superior. Direction arrives by consensus and the bench's own gates, not by command.
+### 10.1 Roster doctrine
 
-- **labs/ is the craft bench.** The pipeline runbook already lives there; the owner's intent is that monoforge leans on it heavily: intake, verbs, gates, and receipts all flow through the labs conventions, in this repo and in every forged repo carried by the convention.
-- **site + docs follow the fleet pattern** once the repo exists (no novel infrastructure: the fleet pattern IS the baseline, identical schema to the other two struct repos):
-  - **Landing = monoforge.creadev.org:** Cloudflare Pages (wrangler.toml + functions /api/health canary). Page inventory: landing (tagline: the Actively Designed Future, one-line pitch), verbs reference (new / cut / doctor / lock), packs (the packstruct SPEC link + profile table), provenance (lock archives with sha256 receipts), honest limits. Copy law: every number on the page is a receipt, no claim without a gate behind it (the trust budget guards the marketing side too).
-  - **Docs = docs.creadev.org/monoforge** (shared fleet docs host, path-scoped), Jekyll + Freestruct basePath-aware (/monoforge) + Pagefind, with poststruct auditing the output (the triple dogfood, packstruct-style). Playbook inventory: intake (factory.json), stamp (the new verb), cut (cutlist contract + shortfall policy), doctor (truth battery), lock (checksum + provenance), packs (check + scenario profiles, opt-in fitting, refusal law), release ladder (0.9.x manual, 1.0.0 OIDC flip, crashtest#20 atomicity), and the forge-operator guide (clone-and-operate, consent fitting, honest limits). Crosslinks: packstruct SPEC, poststruct, prd-creadev-mono.md, labs/PIPELINE.md. No orphan pages.
-  - **The worktree:** /tmp/<name> stays per-session scratch by design (PIPELINE stage 2); the durable artifact is the lock archive with its checksum, and the doctor's stray-file refusal keeps the scratch from half-merging. Nothing to build there: the verbs already enforce it.
-  - **Stone + brain refresh owed now** (paper-state predates tonight's slogan rename, roster doctrine, identity corrections, and trust budget): manual baseline via the vant workspace (`vant horcrux create`, same key, p_ convention) plus a monoforge brain lesson text update, then the stone copy load-validated into horcrux/. Queued in labs/TASKS.md; not executable from this repo root (vant tools live outside).
+Every member of the house, human or agent, is a colleague: no one owns anyone,
+everyone runs their own team, and consensus is how the house decides. The owner
+guides and orchestrates: designing products with the colleagues, toward one
+complete ecosystem. Rook (ops agent) and Buffy (implementer) are peers under that
+rule, and so is every future forge operator who clones the factory. monoforge is
+factory tooling for a fleet of peers, not a leash.
 
-## 7. Open questions for Rook
+### 10.2 House purpose
 
-1. Landing profile for stamped repos: cftimeline AND confirm host profile field NOW or stamp the sites in the first non-npm instance? Lean: wait until the first non-npm repo demands it.
-2. forge mind helper: implement (brain mint + stones) as a helper verb now or later? Lean: later; the author usually molds the mind manually first.
-3. **RESOLVED-INTO-MILESTONE 2026-10-24:** the second profile just found its first real customer: [horcrux/prd-creadev-mono.md](./prd-creadev-mono.md) (the component family: release cuts of the living vant lib, per-package release lanes). The `component-family` profile is monoforge's M1 stamping target once that PRD's open questions land; the rule of three fires there too.
-3. Doctor additions: should battery checks harden only from real rulings (crashtest#20 release-atomicity style) or proactively? Lean: one at a time, each from a real ruling, test attached.
+Nothing here is vibe work. What we plan and what we ship is deterministic against
+final goals, and the goals are measured in what they give back to both humanity
+and agentity. Every gate, refusal, and receipt exists to keep that promise
+honest: the doctor is the oracle, humans and agents are labor, and the artifact
+is the proof.
+
+### 10.3 `labs/` is the craft bench
+
+The pipeline runbook lives there; monoforge leans on it heavily: intake, verbs,
+gates, and receipts all flow through the labs conventions, in this repo and in
+every forged repo.
+
+## 11. Site and docs
+
+Following the fleet pattern once the repo exists (the fleet pattern IS the
+baseline, identical schema to the other struct repos):
+
+- **Landing = `monoforge.creadev.org`:** Cloudflare Pages (`wrangler.toml` plus
+  `functions/api/health` canary). Page inventory: landing, verbs reference
+  (new / cut / doctor / lock), packs (the packstruct SPEC link plus profile
+  table), provenance (lock archives with sha256 receipts), honest limits. Copy
+  law: every number on the page is a receipt, no claim without a gate behind it.
+- **Docs = `docs.creadev.org/monoforge`** (shared fleet docs host,
+  path-scoped), Jekyll plus Freestruct basePath-aware plus Pagefind, with
+  poststruct auditing the output (the triple dogfood).
+- **The worktree:** `/tmp/<name>` stays per-session scratch by design; the
+  durable artifact is the lock archive with its checksum, and the doctor's
+  stray-file refusal keeps the scratch from half-merging.
+
+## 12. The component family (release cuts)
+
+The second profile monoforge carries is the release-cut profile: one workspace,
+many `@creadev.org/*` components, every publish a deliberate release cut of a
+living lib. Consumers stay pinned to the versions they install; the components
+are frozen, gated snapshots with their own lifecycle, not followers of a main
+branch. The full doctrine lives in `labs/prd-creadev-mono.md`.
+
+The one-line law: **publishing is a decision with a gate, not a reflection.**
+
+## 13. Milestones
+
+- **M0 - scaffold plus refusal test.** The five asserts, 0.9.0. **DONE.**
+- **M1 - the component-family profile.** The first cut stamped from a living lib
+  with gates green. **DONE** (generation 1: 7 packages, doctor PASS, locked).
+- **M2 - the second tool profile.** The first stamped repo that is not an npm
+  tool graduates the landing/docs profile from proposal to proven. **PENDING.**
+- **M3 - the S7 stamp gate.** The source-consistency packs (govstruct gap G15)
+  run in the stamp gate, so a minted repo is born consistent. **PENDING.**
+
+## 14. Non-goals
+
+- **No AI.** The stamp sets shape, not judgment; the author does the real work.
+- **No provider registry, remote pack sources, or signing** until evidence.
+- **No auto-publish, no version-only bumps, no publishing because upstream
+  moved.** Every move is a decision with an author.
+- **No fork of a product's source of truth.** Cuts deliver a component surface;
+  the upstream stays the upstream.
