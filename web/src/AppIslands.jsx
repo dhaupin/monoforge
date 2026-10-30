@@ -25,6 +25,10 @@
  *   <pre-island data-pre-island="promo-banner" data-pre-load="idle" />
  */
 
+import FamilyStatusIsland from './components/FamilyStatusIsland.jsx'
+
 export const islands = {
-  // 'your-island': YourIsland,
+  // family-status@1: fetches each sibling's served /status.json and renders
+  // the family table honestly - absence is rendered as absent, never guessed.
+  'family-status': FamilyStatusIsland,
 }
