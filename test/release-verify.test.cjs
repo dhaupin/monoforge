@@ -25,11 +25,13 @@ const root = path.resolve(__dirname, '..')
 const script = path.join(root, 'scripts', 'verify-release.cjs')
 const pkg = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'))
 
-// The factory ships template dotfiles on purpose (templates/.github/,
-// templates/labs/.eyes/), stated as a named allow, never an edit to the
-// script (the generic-core rule).
+// The factory ships template dotfiles on purpose (templates/<profile>/.github/,
+// templates/<profile>/labs/.eyes/), stated as a named allow, never an edit to the
+// script (the generic-core rule). The profiles are subdirs now (coreforge
+// template shape): the dotfiles live under templates/monoforge-headless/ and
+// templates/monoforge/.
 const exportsKeys = Object.keys(pkg.exports).join(',')
-const allow = 'templates/.github/,templates/labs/.eyes/'
+const allow = 'templates/monoforge-headless/.github/,templates/monoforge/labs/.eyes/'
 const mfProbe = "const p=require('monoforge');if(typeof p.stamp!=='function'||typeof p.doctor!=='function'||typeof p.lock!=='function')process.exit(1)"
 
 function packTree(dest) {
