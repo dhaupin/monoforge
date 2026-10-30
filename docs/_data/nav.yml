@@ -6,6 +6,12 @@
   items:
     - title: Home
       url: /monoforge/
+    - title: Why
+      url: /monoforge/why
+    - title: What
+      url: /monoforge/what
+    - title: About
+      url: /monoforge/about
     - title: Verbs
       url: /monoforge/verbs
     - title: Packs

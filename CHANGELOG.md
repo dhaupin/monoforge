@@ -7,6 +7,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 ## [Unreleased]
 
 ### Added
+- **The why / what / about pages, both surfaces.** The landing gains three
+  routes (`/why`, `/what`, `/about`) in the nav vocabulary and
+  `web/ssr.config.js`, each a real page in the family voice: the copy-and-hope
+  problem and the "generated green is never shipped" thesis; the four factory
+  verbs and the truth battery; who builds it and the MIT provenance. The docs
+  tree grows the matching `docs/why.md`, `docs/what.md`, `docs/about.md`,
+  reachable from the docs nav, and the docs layout gains the shared
+  `.crosslinks` block style. This closes the family-wide gap where no member
+  carried a supporting trio.
+
+### Added
 - **The docs legal crosslinks.** The docs footer now links this project's own
   terms + privacy surfaces (`https://monoforge.creadev.org/terms`, `/privacy`),
   matching the packstruct docs rig - the landing's terms/privacy were reachable
