@@ -23,6 +23,33 @@ export default {
       },
     },
     {
+      path: '/why',
+      priority: '0.6',
+      changefreq: 'monthly',
+      meta: {
+        title: 'Why | monoforge',
+        description: 'Generated green is never shipped. Why a factory repo must refuse unfilled slots instead of warning, and why stamped blocks come only from instances already proven.',
+      },
+    },
+    {
+      path: '/what',
+      priority: '0.6',
+      changefreq: 'monthly',
+      meta: {
+        title: 'What | monoforge',
+        description: 'One zero-dependency factory: stamp a repo from proven blocks, doctor it against the truth battery, cut a component family, and lock the green tree with a checksum.',
+      },
+    },
+    {
+      path: '/about',
+      priority: '0.5',
+      changefreq: 'monthly',
+      meta: {
+        title: 'About | monoforge',
+        description: 'Who builds monoforge, the struct family it stamps for, and the MIT license and provenance terms.',
+      },
+    },
+    {
       path: '/terms',
       priority: '0.3',
       changefreq: 'yearly',
