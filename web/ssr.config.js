@@ -23,6 +23,24 @@ export default {
       },
     },
     {
+      path: '/packs',
+      priority: '0.6',
+      changefreq: 'weekly',
+      meta: {
+        title: 'Packs | monoforge',
+        description: 'monoforge carries no packs of its own yet, deliberately: a pack lands when a failure class does. This page states the family pack contract and where packs run today.',
+      },
+    },
+    {
+      path: '/status',
+      priority: '0.7',
+      changefreq: 'weekly',
+      meta: {
+        title: 'Family status | monoforge',
+        description: 'The family-status@1 dialect: every struct-family member serves its verdicts at /status.json, generated on every web build, and reads the others with the same schema.',
+      },
+    },
+    {
       path: '/terms',
       priority: '0.3',
       changefreq: 'yearly',
