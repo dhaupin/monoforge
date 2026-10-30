@@ -11,8 +11,25 @@ CHANGELOG `[Unreleased]` flips in the tag commit; never a docs-only patch.
   `templates/` so `npx monoforge new` works from a fresh install.
 
 ## Landing & docs
-- monoforge is a tool; the landing/docs pattern applies when it earns one
-  (template blocks are its own inventory: `forge new` + fill slots).
+- The landing (`web/`) deploys as a **Cloudflare Pages project** named
+  `monoforge`, production custom domain `monoforge.creadev.org`.
+- Pages Git integration settings (the family contract, same as packstruct /
+  govstruct / eyestruct): **root directory `web`**, build command
+  `npm run build` (which runs `prestruct build`: vite build + brand/SEO
+  injection from `web/ssr.config.js` + per-route prerender + the 404 head
+  repair), output directory `dist`. There is no root `wrangler.toml` - the
+  contract lives here and in the dashboard settings.
+- **Functions:** `web/functions/api/health.js`: `GET /api/health` returns
+  honest JSON. Functions live under the Pages root (`web/`), so they resolve
+  when the project root is `web`; a root-level `functions/` directory would
+  fall outside the project and the canary would 404. Optionally set
+  `SITE_NAME` in the Pages project vars; the function's fallback covers its
+  absence.
+- **Do not add a `/* /index.html 200` SPA fallback** (`web/public/_redirects`
+  explains why: every route prerenders its own HTML, and the fallback
+  redirect-loops against CF's pretty URLs).
+- Docs deploy via `.github/workflows/docs.yml` (GitHub Pages), deploy job
+  gated to `main`.
 
 ## The staging branch (flowforge#30 / monoforge#20)
 
