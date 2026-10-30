@@ -16,6 +16,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 ### Added
 - `test/docs-frontmatter.test.cjs` - the frontmatter gate's scalar leg: a clean page passes, an unquoted colon-space in a required field is refused by name, the same in a NON-required field is refused too (the shape that shipped), and a quoted colon-space stays lawful.
 - `test/release-verify.test.cjs` - the pack ladder run OFFLINE every push (the standing receipt eyestruct carries): a real `npm pack` case and a doctored-tarball refusal by name. Wired into `npm test`.
+- `test/web-imports.test.cjs` - the web rig's import-closure gate: every relative specifier under `web/src` must resolve to a file on disk, and a fixture proves the gate refuses a dangling specifier by name (the shape that shipped). Rule #3: the CF build break shipped green because no Node lane built the rig, so the closure is now asserted in `npm test` without needing prestruct installed.
 - `bin/forge.mjs` answers `--version` (from `package.json`), so the ladder's installed-bin probe resolves.
 - The permanent `staging` integration branch, filled from the sha-gated mount tar (`monoforge-staging-git-2026-10-29.tar.gz`, sha256 `8b836a10…`): the tool tree, `templates/`, the `web/` + `docs/` rig, and the receipts. `horcrux/` stays `main`-owned and intact.
 - The staging CI flow on the repo's first workflows (flowforge#30 / #20): `test.yml` pushes on `main` and `staging`; `docs.yml` watches both and its `deploy` job is gated to `main`. The same flow rides `templates/.github/workflows/`, so a stamped repo inherits it from birth.
@@ -24,6 +25,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Changed
 - `templates/.github/workflows/test.yml` + `docs.yml` - the staging triggers and the deploy guard, so the template cannot ship the pre-staging shape (issue #20's ordering warning).
+- `web/src/AppLayout.jsx` + `web/src/AppIslands.jsx` - drop the two dangling page imports (`pages/Packs.jsx`, `pages/Status.jsx`) and the two dangling island imports (`GateStatusIsland`, `FamilyStatusIsland`) that arrived with the rig copy. The mount declared a Home/Terms/Privacy surface (`web/ssr.config.js` routes, `web/src/components/navItems.js`), and none of those four files were ever copied into `web/src`, so Vite/Rollup could not resolve them and `prestruct build` died at the first specifier. That is why the Cloudflare Pages check was red on `main` and on the PR while every Node lane stayed green (the battery never builds `web/`). Reconciled to the flowforge rig baseline (Home/Terms/Privacy, empty island registry); the landing now builds 3/3 pages with REPAIR-404 PASS.
 
 ### Fixed (found by dogfooding the cut)
 - Declared workspace deps now key on scoped names (the bare-name form made npm install notarget).
