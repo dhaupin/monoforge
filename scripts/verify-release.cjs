@@ -60,7 +60,7 @@
 //   --allow p1/,p2/       path prefixes EXPLICITLY permitted to ship even
 //                         when a default rule would flag them. A factory
 //                         that ships template dotfiles (monoforge's
-//                         templates/.github/, templates/labs/.eyes/) states
+//                         templates/<profile>/.github/, templates/<profile>/labs/.eyes/) states
 //                         that here; the escape is named, never a blanket
 //                         dotfile amnesty.
 //

@@ -39,6 +39,6 @@ version:
    by fast-forward instead removes the drift entirely - only viable if
    nothing ever lands on `main` directly.)
 
-The same flow rides `templates/.github/workflows/`, so a repo stamped by
+The same flow rides `templates/monoforge-headless/.github/workflows/` (the headless template profile), so a repo stamped by
 `monoforge new` inherits it from birth (issue #20's ordering warning: a
 template cut before the flow lands ships the old shape).

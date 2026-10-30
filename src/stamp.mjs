@@ -1,11 +1,12 @@
 // src/stamp.mjs - monoforge new: stamp a fleet repo from template blocks.
 // The config (factory.json) is validated HARD before anything is written:
 // a half-specified repo is refused, never half-created.
-import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync, cpSync, rmSync } from 'node:fs'
-import { join, relative } from 'node:path'
+import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync, rmSync, copyFileSync } from 'node:fs'
+import { join, relative, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { resolveTemplate, resolveChain, TEMPLATES } from './templates.mjs'
 
-const TEMPLATES = join(fileURLToPath(new URL('..', import.meta.url)), 'templates')
+const ROOT = join(fileURLToPath(new URL('..', import.meta.url)))
 
 export function readFactoryConfig(dir) {
   const cfgPath = join(dir, 'factory.json')
@@ -60,10 +61,28 @@ export default async function stamp(dir) {
     const stray = readdirSync(dir).filter((f) => !['factory.json', '.git'].includes(f))
     if (stray.length) return { ok: false, error: `${dir} already contains ${stray.join(', ')} - run in an empty directory holding only factory.json` }
   }
-  if (!existsSync(TEMPLATES)) return { ok: false, error: 'template blocks missing - reinstall monoforge' }
+  // Resolve the profile's chain (children first, parent wins on collision) and
+  // copy the composed file set. `factory.json.profile` selects the profile;
+  // it defaults to the full scaffold. An unknown profile refuses by name, the
+  // same law as a bad config.
+  const profile = typeof cfg.profile === 'string' && cfg.profile.trim() ? cfg.profile.trim() : 'monoforge'
+  if (!TEMPLATES[profile]) {
+    return { ok: false, error: `factory.json profile "${profile}" is not a known profile (known: ${Object.keys(TEMPLATES).join(', ')})` }
+  }
+  let resolved
+  try {
+    resolved = resolveTemplate(profile)
+  } catch (e) {
+    return { ok: false, error: `template resolution failed: ${e.message}` }
+  }
+  if (resolved.size === 0) return { ok: false, error: `profile "${profile}" resolved to no files - the scaffold is missing templates/${profile}/` }
 
   mkdirSync(dir, { recursive: true })
-  cpSync(TEMPLATES, dir, { recursive: true })
+  for (const [rel, src] of resolved) {
+    const dest = join(dir, rel)
+    mkdirSync(dirname(dest), { recursive: true })
+    copyFileSync(src, dest)
+  }
 
   const stampDate = new Date().toISOString().slice(0, 10)
   const reps = tokenReplacements(cfg, stampDate)
