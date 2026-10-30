@@ -7,6 +7,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 ## [Unreleased]
 
 ### Added
+- **The `/packs` surface.** The landing gains a `/packs` route (nav + `web/ssr.config.js` route + sitemap) that reads the extension surface the way eyestruct's does: a hero, the two pack shapes, the "where packs run today" table (packstruct, poststruct, eyestruct, govstruct, crashtest carried; monoforge queued per the rule of three), and the fitting law, crosslinking the family SPEC ([packstruct](https://github.com/dhaupin/packstruct)). The docs `packs.md` page already carried the contract; this is the product-site face.
 - **The family status page (family-status@1).** monoforge now serves the family's shared status contract: `web/scripts/build-status.mjs` generates `web/public/status.json` on every web build from its own truth battery (`src/doctor.mjs`, the same one `monoforge doctor` runs: one `doctor` leg, PASS on a clean battery / RED on any fail) and the template blocks under `templates/*` (14 blocks, 28 files) as the `packs` rows, and a new `/status` route renders the family table live - each sibling's served `/status.json` fetched in the browser, absence shown as absent, never guessed. Same fixed path (`/status.json`), same schema, same dialect as packstruct / poststruct / eyestruct / crashtest / govstruct. The `_headers` CSP `connect-src` now allows the family origins, and `test/status.test.mjs` pins the emitter.
 
 ### Changed
