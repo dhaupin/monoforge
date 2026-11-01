@@ -23,11 +23,18 @@ factory.json:
   "pitch": "the one-line pitch",
   "description": "the long form",
   "siteDomain": "https://my-tool.creadev.org",
-  "version": "0.9.0"
+  "version": "0.9.0",
+  "profile": "monoforge"
 }
 ```
 
-`docsPath` defaults to `docs.creadev.org/<name>`.
+`docsPath` defaults to `docs.creadev.org/<name>`. `profile` defaults to
+`monoforge` (the full scaffold); set it to `monoforge-headless` to stamp only the
+`.github/` battery - a repo that brings its own docs tree still inherits the
+gates, the docs lane, and the release ladder. Profiles CHAIN (the coreforge
+shape): `monoforge` composes `monoforge-headless` first, so the battery lives
+once. `node src/templates.mjs --list` names the profiles;
+`node src/templates.mjs --resolve <name>` prints the resolved file set.
 
 Component families take a `scope` field (npm scope for the cut packages) plus a `cutlist.json` beside `factory.json`:
 
