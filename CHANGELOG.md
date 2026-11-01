@@ -9,6 +9,22 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 ### Added
 - `src/templates.mjs` - the template registry + chain resolver (the coreforge shape). Profiles live in subdirs (`templates/<profile>/`) and COMPOSE via a `chain:` list in each profile's `TEMPLATE.md`: `monoforge` chains `monoforge-headless`, so the `.github/` battery lives once in the headless profile and both shapes inherit it - one copy, no drift. Resolution is depth-first, children first, parent wins on a path collision; a cycle or an unknown profile refuses by name. `--list` / `--resolve NAME` for eyeballing and tests.
 - `test/templates.test.cjs` - the resolver both ways: the declared chain, the composed set carries the headless battery once, the manifest never leaks into the payload, a parent wins a path collision, a cycle refuses, an unknown profile refuses. Wired into `npm test`.
+
+- **The why / what / about pages, both surfaces.** The landing gains three
+  routes (`/why`, `/what`, `/about`) in the nav vocabulary and
+  `web/ssr.config.js`, each a real page in the family voice: the copy-and-hope
+  problem and the "generated green is never shipped" thesis; the four factory
+  verbs and the truth battery; who builds it and the MIT provenance. The docs
+  tree grows the matching `docs/why.md`, `docs/what.md`, `docs/about.md`,
+  reachable from the docs nav, and the docs layout gains the shared
+  `.crosslinks` block style. This closes the family-wide gap where no member
+  carried a supporting trio.
+
+### Added
+- **The docs legal crosslinks.** The docs footer now links this project's own
+  terms + privacy surfaces (`https://monoforge.creadev.org/terms`, `/privacy`),
+  matching the packstruct docs rig - the landing's terms/privacy were reachable
+  from the header/footer, the docs side had no pointer to them.
 - **The `/packs` surface.** The landing gains a `/packs` route (nav + `web/ssr.config.js` route + sitemap) that reads the extension surface the way eyestruct's does: a hero, the two pack shapes, the "where packs run today" table (packstruct, poststruct, eyestruct, govstruct, crashtest carried; monoforge queued per the rule of three), and the fitting law, crosslinking the family SPEC ([packstruct](https://github.com/dhaupin/packstruct)). The docs `packs.md` page already carried the contract; this is the product-site face.
 - **The family status page (family-status@1).** monoforge now serves the family's shared status contract: `web/scripts/build-status.mjs` generates `web/public/status.json` on every web build from its own truth battery (`src/doctor.mjs`, the same one `monoforge doctor` runs: one `doctor` leg, PASS on a clean battery / RED on any fail) and the template blocks under `templates/*` (14 blocks, 28 files) as the `packs` rows, and a new `/status` route renders the family table live - each sibling's served `/status.json` fetched in the browser, absence shown as absent, never guessed. Same fixed path (`/status.json`), same schema, same dialect as packstruct / poststruct / eyestruct / crashtest / govstruct. The `_headers` CSP `connect-src` now allows the family origins, and `test/status.test.mjs` pins the emitter.
 
