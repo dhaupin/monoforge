@@ -13,6 +13,8 @@ export const NAV_ITEMS = [
   { label: 'Why', to: '/why', group: 'site' },
   { label: 'What', to: '/what', group: 'site' },
   { label: 'About', to: '/about', group: 'site' },
+  { label: 'Packs', to: '/packs', group: 'site' },
+  { label: 'Status', to: '/status', group: 'site' },
   // outbound surfaces (npm link rides after 0.9.0 publishes; never before)
   { label: 'Docs', href: 'https://docs.creadev.org/monoforge/', group: 'out' },
   { label: 'GitHub', href: 'https://github.com/dhaupin/monoforge', group: 'out' },
