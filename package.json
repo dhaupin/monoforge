@@ -15,7 +15,7 @@
     "templates/"
   ],
   "scripts": {
-    "test": "node test/run.mjs && node test/version-truth.mjs && node --test test/ship-from-download.test.cjs test/release-verify.test.cjs test/docs-frontmatter.test.cjs test/web-imports.test.cjs",
+    "test": "node test/run.mjs && node test/version-truth.mjs && node --test test/ship-from-download.test.cjs test/release-verify.test.cjs test/docs-frontmatter.test.cjs test/web-imports.test.cjs test/status.test.mjs",
     "lint:packs": "node bin/forge.mjs lint-packs --deep",
     "lint:docs": "node scripts/check-docs-frontmatter.cjs && node scripts/check-docs-links.cjs && node scripts/check-docs-style.cjs && node scripts/check-fiction-signatures.cjs && node scripts/check-jekyll-filters.cjs",
     "lint:language": "node scripts/check-language.cjs",
