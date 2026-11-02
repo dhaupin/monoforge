@@ -25,6 +25,14 @@ written: a half-specified factory is refused, never half-created, and a
 directory holding anything besides `factory.json` is refused - never
 half-merged.
 
+Re-running `new` over a directory this factory already stamped (it carries the
+`.monoforge-stamp.json` receipt) is a **re-stamp**, not a refusal: it overlays
+only the template paths still matching the factory's last emission. A path the
+host has edited since - a `crashtest.config.js`, an `AGENTS.md` house-rules
+edit, a CI lane - is skipped by name and left byte-for-byte intact, so
+convergence never eats host state. A receipt whose recorded `name` differs from
+the config is refused (identity drift is not a re-stamp).
+
 ```json
 {
   "name": "kebab-name",
