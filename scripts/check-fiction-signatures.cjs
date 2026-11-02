@@ -28,7 +28,7 @@ const SIGNATURES = [
 const NEGATION = /do not|never|must not|fiction|example|placeholder|e\.g\.|rule/;
 // text extensions + allow-list
 const TEXT_EXT = new Set(['.md', '.txt', '.html', '.js', '.mjs', '.cjs', '.yml', '.css']);
-const ALLOW = new Set(['scripts/check-fiction-signatures.cjs', 'scripts/check-docs-style.cjs']);
+const ALLOW = new Set(['scripts/check-fiction-signatures.cjs', 'scripts/check-docs-style.cjs', 'templates/monoforge/scripts/check-fiction-signatures.cjs', 'templates/monoforge/scripts/check-docs-style.cjs']);
 const hits = [];
 let scanned = 0;
 

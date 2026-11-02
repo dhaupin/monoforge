@@ -5,6 +5,30 @@ convention: 0.9.x manual (`npm publish`), 1.0.0 tagged (publish.yml,
 OIDC provenance, refuses 0.x refs). Release atomicity per crashtest#20:
 CHANGELOG `[Unreleased]` flips in the tag commit; never a docs-only patch.
 
+## The trifecta audit (run before every tag)
+
+One walk over four artifacts, receipts over vibes (monoforge#10, the eyestruct
+walk's lane). Each member is checked against what the tree ACTUALLY does, not
+what a prior cut said:
+
+1. **README** - usage lines match the real `bin/forge.mjs` dispatch (no phantom
+   flags), the status line describes what is live, and the surfaces link the
+   docs/npm/workshop (Creadev.org named).
+2. **AGENTS.md** - the agent's first read: where the verbs live, the battery and
+   lane workflow file names, and the receipt inventory an agent may cite.
+3. **Deploy lanes** - the `.github/workflows/*.yml` set: does the deploy env
+   (domain, baseurl, secrets) still match what README/DEPLOY claim, and is each
+   lane discoverable from AGENTS.md? (The 2026-11-02 walk caught `staging-ff-sync`
+   missing from the README workflow list, the docs lane called "4 gates" while
+   six ran, and `docs/ci.md` describing a Jekyll/Pagefind invocation the workflow
+   never used.)
+4. **CHANGELOG** - keep-a-changelog discipline: one `### Added` / `### Changed`
+   / `### Removed` / `### Fixed` per section (no duplicate type headings), and
+   `[Unreleased]` carries only REAL futures.
+
+The walk is not done until every catch is commissioned in the same session (a
+battery leg, a doc fix, or a named docket row) - the walk-exit rule in AGENTS.md.
+
 ## npm prep
 - Registry name **monoforge** is free (checked 2026-10-24, npm 404).
 - `npm pack --dry-run` before publish: files whitelist is `bin/`, `src/`,

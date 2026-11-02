@@ -28,12 +28,16 @@ jobs:
 
       # Docs truth gates (ported house checkers): frontmatter 5-field law,
       # resolvable links, style law (no dashes in prose, language-tagged
-      # fences, no trailing ws), English-only prose.
+      # fences, no trailing ws), fiction-signature seeds, the two-argument
+      # Liquid filter trap, English-only prose - the same six `lint:docs`
+      # runs in the battery, so the lane and `npm run check` cannot drift.
       - name: Docs gates
         run: |
           node scripts/check-docs-frontmatter.cjs
           node scripts/check-docs-links.cjs
           node scripts/check-docs-style.cjs
+          node scripts/check-fiction-signatures.cjs
+          node scripts/check-jekyll-filters.cjs
           node scripts/check-language.cjs
 
       # Shell-residue gate (issue gistory#12): the flowforge shell edition

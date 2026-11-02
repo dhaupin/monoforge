@@ -25,15 +25,21 @@ committed baselines. A fork cannot walk the seed.
 
 ## The docs lane (`.github/workflows/docs.yml`)
 
+The six docs-truth gates run first (`scripts/check-docs-*.cjs` plus the
+fiction-signature and Liquid-filter checkers), then the build itself:
+
 ```bash
-npx jekyll build                 # ruby/jekyll half
-npx --yes freestruct@1.1.0 --strict   # post-render SEO layer, fails closed
-npx pagefind --site dist         # index LAST, over the final injected html
+bundle exec jekyll build               # ruby/jekyll half (docs/)
+npx --yes freestruct@1.1.0 --strict    # post-render SEO layer, fails closed
+./pagefind --site _site                # index LAST, over the final injected html
 ```
 
 The engine refuses an SSG source tree (point it at the built output, not
 the checkout), unknown flags fail loudly (v1.1.0 contract), and pagefind
-indexes over the freestruct-injected html, never the bare build.
+indexes over the freestruct-injected html, never the bare build. Pagefind
+rides the standalone musl tarball (the `pagefind` npm package's platform
+binary and its npx fallback both died in CI); `bundle exec` is the only
+Jekyll invocation that resolves the Gemfile in `docs/`.
 
 ## Ferry receipts (the mount's own tree)
 
