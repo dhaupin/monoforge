@@ -6,6 +6,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Fixed
+- **The walk-exit rule now rides the template AGENTS.md, so a stamped repo
+  inherits it (gistory#24).** The rule (a manual walk is not done until
+  nothing it found is uncommissioned) was in the repo AGENTS.md and the
+  template DEPLOY.md, but the template AGENTS.md - the file a stamped repo
+  actually gets - did not carry it, so DEPLOY.md's "the walk-exit rule in
+  AGENTS.md" pointed at nothing in a fresh tree. The template AGENTS.md now
+  carries the rule with the eyestruct@70dfbea worked example, matching the
+  repo copy.
+
 ### Added
 - **The trifecta audit, folded into the release runbook (monoforge#10).** `DEPLOY.md` (and its `templates/monoforge/` twin, so a stamped repo inherits it) now carries the four-artifact walk the family runs before a tag: README usage vs the real dispatch, AGENTS.md's lane/receipt inventory, the deploy-lane env against README/DEPLOY claims, and CHANGELOG keep-a-changelog discipline. The walk-exit rule applies: every catch commissions in the same session.
 - The two template doc gates the repo ran but the headless profile did not: `templates/monoforge/scripts/check-fiction-signatures.cjs` and `check-jekyll-filters.cjs`, wired into `templates/monoforge-headless/.github/workflows/docs.yml`, so a stamped repo's docs lane runs all six gates, not four.
