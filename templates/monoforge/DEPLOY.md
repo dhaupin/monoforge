@@ -6,6 +6,23 @@ fleet convention:
 1. **0.9.x is manual.** While the major is 0.x, publish by hand
    (`npm publish`). The workflow refuses 0.x versions.
 
+## The trifecta audit (run before every tag)
+
+One walk over four artifacts, receipts over vibes (monoforge#10). Each member is
+checked against what the tree ACTUALLY does, not what a prior cut said:
+
+1. **README** - usage lines match the real bin dispatch (no phantom flags), the
+   status line describes what is live, surfaces link docs/npm/workshop.
+2. **AGENTS.md** - the agent's first read: where things live, the battery/lane
+   workflow file names, the receipt inventory an agent may cite.
+3. **Deploy lanes** - the `.github/workflows/*.yml` set: deploy env still matches
+   what README/DEPLOY claim, each lane discoverable from AGENTS.md.
+4. **CHANGELOG** - keep-a-changelog discipline: one type heading per section,
+   `[Unreleased]` carries only REAL futures.
+
+The walk is not done until every catch is commissioned in the same session (a
+battery leg, a doc fix, or a named docket row) - the walk-exit rule in AGENTS.md.
+
 ## Release atomicity (ruled 2026-10-24 on crashtest#20)
 
 - CHANGELOG `[Unreleased]` flips to the dated version header in the same
@@ -30,7 +47,7 @@ fleet convention:
 
 ## Docs site (GitHub Pages via Actions, __DOCS_URL__)
 
-- `.github/workflows/docs.yml`: docs-truth gates first (the four ported
+- `.github/workflows/docs.yml`: docs-truth gates first (the six ported
   checkers), Jekyll, `freestruct --strict` (basePath-aware), `pagefind`
   from the proven musl tarball, official artifact deploy. First run needs
   the Pages source set to "GitHub Actions" in repo settings.

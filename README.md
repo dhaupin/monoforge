@@ -49,14 +49,14 @@ Component families take a `scope` field (npm scope for the cut packages) plus a 
 }
 ```
 
-Every unmapped internal dependency refuses; shortfall lazies must be declared and ship as documented call-site degrades (each package README carries the list). The realized receipt: the creedev-lib generation-1 cut, 7 packages from the vant lib, in the mono PRD.
+Every unmapped internal dependency refuses; shortfall lazies must be declared and ship as documented call-site degrades (each package README carries the list). The realized receipt: the creadev-lib generation-1 cut, 7 packages from the vant lib, in the mono PRD.
 
 ## What stamps, what does not
 
 | Layer | monoforge carries it | Source of truth |
 |---|---|---|
-| Docs system (Jekyll + Pagefind + Freestruct + 4 gates) | template | two proven instances |
-| Workflows (test, publish 0.x refusal, docs) | template | same |
+| Docs system (Jekyll + Pagefind + Freestruct + 6 gates) | template | two proven instances |
+| Workflows (test, docs, publish 0.x refusal, staging ff-sync) | template | same |
 | Release ladder + DEPLOY runbook shape | template | same |
 | `FORGE-TODO` slots (README pitch, AGENTS core law, coverage list) | **author** | the tool itself |
 | the core code, the check catalog, the spec | **author** | the tool itself |
