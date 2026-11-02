@@ -9,6 +9,9 @@ const Help = `monoforge - the struct-family factory
 
 Usage:
   monoforge new <dir>       stamp a fleet repo from factory.json (config in <dir>)
+                            re-running over a stamped tree overlays only the
+                            files still matching its receipt; host-edited
+                            files are skipped by name, never clobbered
   monoforge doctor [dir]    run the truth battery (default: cwd)
   monoforge cut [dir]       cut a component-family workspace (cutlist.json + factory.json required)
   monoforge lock [dir]      doctor, then archive with a checksum

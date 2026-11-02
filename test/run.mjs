@@ -109,9 +109,52 @@ const r7 = await doctor(d7)
 assert(r7.findings.some((f) => f.id === 'publish-token' && f.level === 'fail'), 'a publish token (secrets.NPM_TOKEN / NODE_AUTH_TOKEN) must fail the doctor by id (the family law: OIDC only, no publish tokens)')
 rmSync(d7, { recursive: true, force: true })
 
+// 8. stamp coexistence (monoforge#4): a re-stamp must never clobber a stamped
+//    repo's host-authored artifacts. Stamp once, hand-edit a template file the
+//    way a host grows a crashtest.config.js after day one, re-stamp, and assert
+//    the host's bytes survive untouched while a pristine file is refreshed.
+const d8 = mkdtempSync(join(tmpdir(), 'forge-restamp-'))
+writeFileSync(join(d8, 'factory.json'), JSON.stringify({ name: 'coexist-forge', species: 'test animal', pitch: 'A re-stamp probe.', description: 'A synthetic repo proving a re-stamp never eats host state.', siteDomain: 'https://coexist-forge.creadev.org', version: '0.9.0' }))
+const r8a = await stamp(d8)
+assert(r8a.ok === true && r8a.restamp === false, 'first stamp: a fresh tree stamps clean')
+const receiptPath = join(d8, '.monoforge-stamp.json')
+const receipt = JSON.parse(rf(receiptPath, 'utf8'))
+assert(Array.isArray(receipt.files) && receipt.hashes && typeof receipt.hashes === 'object',
+  'receipt keeps `files` an array (the doctor scope) and adds a `hashes` map (the coexistence ledger)')
+assert(receipt.hashes['README.md'] && typeof receipt.hashes['README.md'] === 'string',
+  'receipt hashes cover copied template files (the coexistence ledger is populated, not empty)')
+// host authors a template path after day one: a crashtest.config.js and an
+// edited AGENTS.md (the repo's own house rules).
+const hostFile = join(d8, 'crashtest.config.js')
+wf(hostFile, "module.exports = { handler: 'run --allow-vacuous' }\n")
+const hostBytes = rf(hostFile, 'utf8')
+wf(join(d8, 'AGENTS.md'), '# host-authored house rules\n')
+const agentsBytes = rf(join(d8, 'AGENTS.md'), 'utf8')
+const r8b = await stamp(d8)
+assert(r8b.ok === true && r8b.restamp === true, 're-stamp: a receipt-bearing tree is a re-stamp, not a stray dir')
+assert(r8b.skipped.includes('AGENTS.md'), 're-stamp: the edited template file is reported as a named skip, never a silent bleed')
+assert(rf(join(d8, 'AGENTS.md'), 'utf8') === agentsBytes, 're-stamp: the host-authored AGENTS.md bytes are unchanged')
+assert(rf(hostFile, 'utf8') === hostBytes, 're-stamp: a host-authored file outside the template set is untouched')
+// the receipt still records the factory's last emission for the skipped path,
+// so a THIRD stamp still treats it as host-owned (never a one-shot skip).
+const r8c = await stamp(d8)
+assert(rf(join(d8, 'AGENTS.md'), 'utf8') === agentsBytes, 'third stamp: a host-authored file stays host-owned across re-stamps')
+assert(r8c.skipped.includes('AGENTS.md'), 'third stamp: the host-owned path is still skipped')
+// a pristine template file IS refreshed, but a host-authored one is not:
+// README.md starts pristine, so a first re-stamp with it untouched refreshes
+// it from the template; once the host has scribbled on it, later re-stamps
+// leave it alone (the same law, applied to a file the factory once owned).
+const readmeTemplate = rf(join(d8, 'README.md'), 'utf8')
+assert(/coexist-forge/.test(readmeTemplate), 're-stamp: a pristine template file keeps its factory emission (tokens filled)')
+wf(join(d8, 'README.md'), 'host scribble\n')
+const r8d = await stamp(d8)
+assert(rf(join(d8, 'README.md'), 'utf8') === 'host scribble\n', 're-stamp: once the host edits a template file, its bytes are never clobbered')
+assert(r8d.skipped.includes('README.md'), 're-stamp: the host-edited template file is a named skip')
+rmSync(d8, { recursive: true, force: true })
+
 rmSync(base, { recursive: true, force: true })
 if (fails.length) { console.error('SELF-TEST FAIL:\n  ' + fails.join('\n  ')); process.exit(1) }
-console.log('monoforge self-test: bad-config refused, stray dir refused, stamp ok, unfilled doctor FAIL, refilled doctor PASS, canon dangling/UNSET refused, canon-free silent, publish token refused - PASS')
+console.log('monoforge self-test: bad-config refused, stray dir refused, stamp ok, unfilled doctor FAIL, refilled doctor PASS, canon dangling/UNSET refused, canon-free silent, publish token refused, re-stamp never clobbers host state - PASS')
 process.exit(0)
 
 function require3(p) { return rf(p, 'utf8') }

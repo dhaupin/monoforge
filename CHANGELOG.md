@@ -6,6 +6,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Added
+
+- **A re-stamp no longer clobbers a stamped repo's host-authored artifacts
+  (monoforge#4).** `stamp` records the sha256 of every file it emits in the
+  receipt's new `hashes` map. Re-running `monoforge new` over a tree carrying
+  our receipt now overlays only the paths still matching the factory's last
+  emission; a template path the host has edited since - a `crashtest.config.js`,
+  an `AGENTS.md` house-rules edit, a CI lane - is **skipped by name** (reported
+  in the result's `skipped` list) and left byte-for-byte intact. The receipt's
+  `files` array keeps the doctor's truth-slot scope, and a skipped path keeps
+  the factory's last emission hash so it stays host-owned across every future
+  re-stamp. The old "non-empty dir refused" law is unchanged for a directory
+  that is not ours; a name mismatch on our own receipt is refused too.
+
 ### Changed
 
 - **Changelog + release-notes standardized to the family shape.** `CHANGELOG.md`
