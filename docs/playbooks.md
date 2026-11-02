@@ -41,12 +41,12 @@ refuses with the named refusal, never a bare stack trace. The doctor fix
 also walks `.gitignore`-aware (scratch trees do not land in the battery).
 
 The lock archive is the ferry's payload: `horcrux/<name>-<v>-lock.tar.gz`,
-sha-pinned wherever a stage (the gistory mount, a CI lane) consumes it. All
+sha-pinned wherever a stage (a CI lane, a consumer repo) consumes it. All
 stages gate on the exact archive sha before unpacking anything.
 
-## 3. The tar-to-mount ferry
+## 3. The tar-to-mount ferry (retired 2026-11-02)
 
-A mount derives its tool tree from the lock archive by construction:
+A mount derived its tool tree from the lock archive by construction:
 
 - fetch the pinned `tar.gz` from the owning repo, verify the sha;
 - unpack over the mount's tracked bytes;
@@ -57,6 +57,10 @@ A mount derives its tool tree from the lock archive by construction:
 Receipts (gistory `a76ac3a9`, ferry runs 168-170): HEAD's bytes are the rig
 generation; a committed patch carries no authority over them, so stale
 hunks retire inside the ferry's own commit.
+
+The mount-side ferry retired 2026-11-02 with gistory's forge role
+(dhaupin/gistory#37); the factory role moved to **railyard**. monoforge owns
+its tree now, so the converge law above is history, kept as the receipt.
 
 ## 4. The battery a stamped repo inherits
 

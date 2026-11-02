@@ -6,6 +6,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Changed
+- **Docs no longer describe a gistory mount/ferry (monoforge#36).** gistory
+  retired its forge role 2026-11-02 (dhaupin/gistory#37): the staging mounts,
+  the registry, and the ferry workflows are gone, and the factory role moved
+  to **railyard**. `docs/ci.md` and `docs/playbooks.md` now mark the
+  mount-side ferry retired and keep the four receipts as the local smoke test;
+  the battery section (gistory#14 spec) is unchanged - it is monoforge's own
+  `test.yml` now.
+
 ### Fixed
 - **The walk-exit rule now rides the template AGENTS.md, so a stamped repo
   inherits it (gistory#24).** The rule (a manual walk is not done until
