@@ -123,7 +123,14 @@ jobs:
           # artifact npm received, not a re-pack of the checkout, so the
           # release asset and the npm artifact can never drift. The verify
           # job's --asset leg then asserts their sha512s are equal.
-          npm pack "monoforge@$BLOCK_VERSION" --pack-destination "$RUNNER_TEMP" > /dev/null
+          # The registry read replica can lag the publish by seconds; poll
+          # (bounded) instead of racing it (the crashtest 1.2.0 cut read
+          # ETARGET: no matching version right after publish).
+          for i in $(seq 1 24); do
+            if npm pack "monoforge@$BLOCK_VERSION" --pack-destination "$RUNNER_TEMP" > /dev/null 2>&1; then break; fi
+            if [ "$i" = "24" ]; then echo "the registry never served monoforge@$BLOCK_VERSION (24 attempts)"; exit 1; fi
+            echo "waiting for monoforge@$BLOCK_VERSION on the registry (attempt $i/24)"; sleep 5
+          done
           gh release upload "$BLOCK_TAG" "$RUNNER_TEMP/monoforge-$BLOCK_VERSION.tgz" --clobber
 
   verify:
