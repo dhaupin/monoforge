@@ -15,6 +15,15 @@
 //                         TAG^{commit}`, and the source tarball's file
 //                         list diffs clean against `git archive` of that
 //                         commit (zero drift).
+//   --asset <name>        with --gh: assert the release carries an asset
+//                         named <name> whose sha512 equals the registry's
+//                         own integrity metadata for this version - the GH
+//                         release and the npm artifact are the SAME bytes,
+//                         so a consumer gets one artifact either way. Opt-in
+//                         (a repo that attaches no tarball passes no flag
+//                         and sees zero behavior change); a repo whose
+//                         release carries the tarball passes it and makes
+//                         the identity a hard requirement.
 //
 // The battery leg (tests/release-verify.test.js) runs the same script over
 // `npm pack` output - THE PACK LADDER EVERY PUSH, offline-first:
@@ -57,12 +66,17 @@
 //                         dirs that simply should not ride a tarball:
 //                         labs/ docs/ web/ packs/ tests/ scripts/
 //                         models/ examples/ .github/ node_modules/)
-//   --allow p1/,p2/       path prefixes EXPLICITLY permitted to ship even
-//                         when a default rule would flag them. A factory
-//                         that ships template dotfiles (monoforge's
-//                         templates/<profile>/.github/, templates/<profile>/labs/.eyes/) states
-//                         that here; the escape is named, never a blanket
-//                         dotfile amnesty.
+//   --allowed p1/,p2/     forbidden prefixes DE-ASSERTED for this
+//                         invocation (subtracted from the defaults + any
+//                         --forbidden additions). A repo whose runtime
+//                         tarball legitimately carries a default-forbidden
+//                         tree dir states it here instead of forking this
+//                         file (vant ships web/ as product). Subtraction
+//                         only: you can never re-assert something the scan
+//                         itself forbids. A repo that never passes the flag
+//                         sees zero behavior change. `--allow` is accepted
+//                         as the same flag (the two forked copies spelled
+//                         it that way before this landed upstream).
 //
 // What each repo passes lives in ITS OWN workflow/battery invocation - the
 // script stays identical across the family, so a fix here is one copy.
@@ -117,10 +131,18 @@ function tarList(file) {
 
 function forbidden(scan, extraPrefixes, allowed) {
   const prefixes = [...FORBIDDEN_PREFIXES, ...extraPrefixes]
+  // --allowed names exemptions (--allow is the same flag - the spelling the
+  // two forked copies shipped before this landed upstream). A name under an
+  // allowed prefix skips the scan: a repo whose runtime tarball legitimately
+  // carries a default-forbidden tree dir (vant ships web/ as product) or
+  // ships template dotfiles on purpose (monoforge's templates/.github/)
+  // states it here instead of forking this file. Exemption only - you can
+  // never re-assert something the scan itself forbids, and a repo that
+  // passes no flag sees zero behavior change.
+  const exempt = (name) => allowed.some((p) => name === p || name.startsWith(p))
   const hits = []
-  const allow = (name) => allowed.some((p) => name === p || name.startsWith(p))
   for (const name of scan) {
-    if (allow(name)) continue
+    if (exempt(name)) continue
     for (const p of prefixes) {
       if (name.startsWith(p)) hits.push(`${name} (forbidden path prefix ${p})`)
     }
@@ -204,7 +226,7 @@ function packLadder(tgz, expectedVersion, cfg) {
   // its adapter-contract marker).
   const installedPkg = JSON.parse(fs.readFileSync(path.join(home, 'node_modules', cfg.name, 'package.json'), 'utf8'))
   // A package with no main/exports/bin legitimately has no root module to
-  // load (a shell that ships tool files + templates only). Requiring its
+  // load (a factory that ships tool files + templates only). Requiring its
   // own name then raises MODULE_NOT_FOUND for a shape, not a defect, so the
   // default load probe is SKIPPED by name and the repo states its real
   // surface as --probe. Named, never silent.
@@ -296,7 +318,7 @@ async function npmLadder(expectedVersion, cfg) {
 
 // --- the release ladder --------------------------------------------------
 
-function ghLadder(tag) {
+function ghLadder(tag, cfg, version, assetName) {
   const repo = process.env.GITHUB_REPOSITORY
   if (!repo) cap('--gh needs GITHUB_REPOSITORY (it runs inside publish.yml)')
   if (sh('gh', ['--version']).status !== 0) cap('gh CLI not available for the release ladder')
@@ -340,6 +362,31 @@ function ghLadder(tag) {
     fail(`GH source tarball drifts from the release commit tree - missing: ${JSON.stringify(missing.slice(0, 10))} extra: ${JSON.stringify(extra.slice(0, 10))}`)
   }
   say(`[verify-release] PASS GH source tarball == git archive of ${commit.slice(0, 12)} (${archNames.size} files, zero drift)`)
+
+  // The release asset, when the repo attaches one: its bytes must equal the
+  // registry's own integrity metadata for this version, so the GH release
+  // and the npm artifact are literally the same tarball - a consumer
+  // downloads one artifact either way. The registry is the authority
+  // (metadata the publish lane already asserted); a mismatch is drift.
+  if (assetName) {
+    const meta = sh('npm', ['view', `${cfg.name}@${version}`, 'dist.integrity', '--json'])
+    if (meta.status !== 0) cap(`npm view ${cfg.name}@${version} dist.integrity failed: ${meta.stderr.trim()}`)
+    let want
+    try { want = JSON.parse(meta.stdout) } catch { cap(`npm view returned non-JSON: ${meta.stdout.slice(0, 200)}`) }
+    want = String(want || '').replace(/^sha512-/, '')
+    if (!want) fail(`the registry carries no integrity metadata for ${cfg.name}@${version} - cannot judge the release asset`)
+    const assetApi = sh('gh', ['api', `repos/${repo}/releases/tags/${tag}`])
+    let assets = []
+    try { assets = JSON.parse(assetApi.stdout).assets || [] } catch { cap('gh api returned non-JSON assets') }
+    const asset = assets.find((x) => x.name === assetName)
+    if (!asset) fail(`the release carries no asset named ${assetName} (found: ${JSON.stringify(assets.map((x) => x.name))})`)
+    const dlAsset = spawnSync('gh', ['api', `repos/${repo}/releases/assets/${asset.id}`, '-H', 'Accept: application/octet-stream'], { encoding: 'buffer', maxBuffer: 64 * 1024 * 1024 })
+    if (dlAsset.status !== 0) cap(`gh api asset download failed for ${assetName}`)
+    const got = crypto.createHash('sha512').update(dlAsset.stdout).digest('base64')
+    if (got !== want) fail(`release asset ${assetName} sha512 ${got.slice(0, 12)}... != registry integrity ${want.slice(0, 12)}... - the GH release and the npm artifact are not the same bytes`)
+    say(`[verify-release] PASS release asset ${assetName} sha512 == registry integrity (same bytes as npm)`)
+  }
+
   fs.rmSync(path.dirname(src), { recursive: true, force: true })
 }
 
@@ -357,9 +404,12 @@ function main() {
   if (forbiddenIdx !== -1) {
     if (a[forbiddenIdx + 1]) cfg.extraForbidden = String(a[forbiddenIdx + 1]).split(',').filter(Boolean)
   }
-  const allowIdx = a.indexOf('--allow')
-  if (allowIdx !== -1) {
-    if (a[allowIdx + 1]) cfg.allowed = String(a[allowIdx + 1]).split(',').filter(Boolean)
+  // --allowed (alias --allow, the spelling the two forked copies shipped
+  // before this landed upstream): prefixes de-asserted from the forbidden
+  // scan for this invocation.
+  const allowedIdx = a.findIndex((v) => v === '--allowed' || v === '--allow')
+  if (allowedIdx !== -1) {
+    if (a[allowedIdx + 1]) cfg.allowed = String(a[allowedIdx + 1]).split(',').filter(Boolean)
   }
   for (let i = 0; i < a.length; i++) {
     if (a[i] === '--probe') {
@@ -371,7 +421,7 @@ function main() {
   const wantNpm = a.includes('--npm')
   const wantGh = a.includes('--gh')
   if (!wantPack && !wantNpm && !wantGh) {
-    say('usage: verify-release [--pack <tgz>] [--npm] [--gh --tag vX.Y.Z] [--version X.Y.Z] [--exports k1,k2,...] [--probe "<js>"] [--forbidden p1/,p2/] [--allow p1/,p2/]')
+    say('usage: verify-release [--pack <tgz>] [--npm] [--gh --tag vX.Y.Z] [--version X.Y.Z] [--exports k1,k2,...] [--probe "<js>"] [--forbidden p1/,p2/] [--allowed p1/,p2/]')
     process.exit(2)
   }
   const versionArgIdx = a.indexOf('--version')
@@ -379,6 +429,9 @@ function main() {
 
   const tagIdx = a.indexOf('--tag')
   if (wantGh && (tagIdx === -1 || !a[tagIdx + 1])) cap('--gh needs --tag vX.Y.Z')
+  const assetIdx = a.indexOf('--asset')
+  const assetName = assetIdx !== -1 ? a[assetIdx + 1] : null
+  if (assetIdx !== -1 && !assetName) cap('--asset needs an asset file name')
 
   ;(async () => {
     let packTarget = null
@@ -399,7 +452,7 @@ function main() {
     if (wantGh) {
       const gitOk = sh('git', ['rev-parse', '--git-dir'])
       if (gitOk.status !== 0) cap('not a git worktree; the gh ladder needs the release commit')
-      ghLadder(a[tagIdx + 1])
+      ghLadder(a[tagIdx + 1], cfg, version, assetName)
     }
     say('[verify-release] VERIFIED: everything it checked is checked.')
   })().catch((e) => cap(e.message))

@@ -7,6 +7,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 ## [Unreleased]
 
 ### Changed
+- The `release` job now attaches the **served** tarball (`npm pack
+  monoforge@<version>`) to the GH release, and the `verify` job asserts its
+  sha512 equals the registry integrity metadata
+  (`scripts/verify-release.cjs --gh --asset`). The GH release and the npm
+  artifact are the same bytes, so a consumer downloads one artifact either
+  way. `scripts/verify-release.cjs` moves to the family copy that carries the
+  `--asset` leg.
 - **Docs no longer describe a gistory mount/ferry (monoforge#36).** gistory
   retired its forge role 2026-11-02 (dhaupin/gistory#37): the staging mounts,
   the registry, and the ferry workflows are gone, and the factory role moved
