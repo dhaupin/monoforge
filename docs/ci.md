@@ -3,7 +3,7 @@ version: '1.0'
 permalink: ci/
 layout: default
 title: CI
-description: The battery a stamped monoforge repo should compose, the docs build lane, and the ferry receipts the mount rides in gistory.
+description: The battery a stamped monoforge repo should compose, the docs build lane, and the mount-side ferry receipts (retired 2026-11-02).
 nav_order: 5
 ---
 
@@ -41,12 +41,12 @@ rides the standalone musl tarball (the `pagefind` npm package's platform
 binary and its npx fallback both died in CI); `bundle exec` is the only
 Jekyll invocation that resolves the Gemfile in `docs/`.
 
-## Ferry receipts (the mount's own tree)
+## Ferry receipts (retired 2026-11-02)
 
-`monoforge-staging` rides gistory's `monoforge-ferry.yml`: fetch the
-sha-gated lock archive, converge a delta, self-test the unpacked tool
-(`node test/run.mjs` - the stamp/doctor/lock-refusal battery), gate the
-re-derived overlay with a second fresh unpack, and no-op commit when main
-already carries the converged tree. Run the same four receipts locally
-before pushing a UI or template change; the ferry lanes are the mount's
-smoke test.
+The mount-side ferry retired with gistory's forge role (dhaupin/gistory#37):
+monoforge owns its tree and battery now, and the factory role moved to
+**railyard**. The four receipts the ferry used to run are still the right
+smoke test before pushing a UI or template change - fetch the sha-gated lock
+archive, converge the delta, self-test the unpacked tool (`node test/run.mjs`
+- the stamp/doctor/lock-refusal battery), and gate the re-derived overlay with
+a second fresh unpack. Run them locally; no gistory lane carries them.
