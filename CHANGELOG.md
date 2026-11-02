@@ -6,6 +6,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Fixed
+
+- **The phone publish lane no longer stages a deprecated `always-auth` `.npmrc`
+  line.** npm >=9 warns `Unknown project config "always-auth"` on it, and that
+  warning reaches the child processes the `prepublishOnly` gate spawns - on some
+  npm builds it corrupts `npm pack --dry-run --json` output, turning a clean tree
+  into a false capability failure. The staged file is now exactly one line (the
+  `${NPM_TOKEN}` expansion), and the release ladder's pack probe passes
+  `--loglevel=error` and slices the JSON from the first `[`, so a stray warning
+  can never again read as a pack failure.
+
 ### Added
 
 - **A re-stamp no longer clobbers a stamped repo's host-authored artifacts
