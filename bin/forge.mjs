@@ -4,6 +4,7 @@
 // text, missing entries, and broken gates; the lock refuses a dirty tree.
 import { resolve } from 'node:path'
 import { readFileSync } from 'node:fs'
+import '../src/fs-node.mjs' // install the node:fs storage adapter as the default
 
 const Help = `monoforge - the struct-family factory
 
