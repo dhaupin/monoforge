@@ -11,9 +11,15 @@
 //      template walk, copy, token fill, gitignore rename, manifest write - all
 //      through `memoryFs()`, asserted by reading the result back through the
 //      same adapter.
-//   3. WORKERD BUNDLE - the engine bundled for workerd (platform neutral) carries
-//      NO static `node:fs` import and stamps through `memoryFs()` with an
-//      explicit root, i.e. exactly the code the /api/stamp-canary Function runs.
+//   3. SOURCE GRAPH - every module reachable from `src/workers.mjs` imports no
+//      `node:*` builtin, proven by walking the real graph (always on).
+//   4. WORKERD BUNDLE - the engine bundled for workerd (platform neutral) carries
+//      no `node:*` import and stamps through `memoryFs()` with an explicit root,
+//      i.e. exactly the code the /api/stamp-canary Function runs. Needs the
+//      esbuild toolchain (web/node_modules), so it is a NAMED skip in the root
+//      battery and covered by the CF Pages build there.
+//   5. THE FUNCTION - the shipped /api/stamp-canary handler, run as workerd runs
+//      it. Same esbuild dependency as (4).
 //
 // No mocks: `memoryFs()` is a real adapter and the bundle is the real artifact.
 import { test } from 'node:test'
@@ -56,6 +62,44 @@ const CANARY_FACTORY = {
   siteDomain: 'https://workers-canary.creadev.org',
 }
 
+// The engine core must import NO `node:*` builtin, or it cannot bundle for
+// workerd. This walks the real module graph from `src/workers.mjs` and asserts
+// the claim at the source, so the battery proves it even where the esbuild
+// toolchain (web/node_modules) is absent.
+function moduleGraph(entry) {
+  const seen = new Set()
+  const stack = [entry]
+  while (stack.length) {
+    const file = stack.pop()
+    if (seen.has(file)) continue
+    seen.add(file)
+    const src = readFileSync(file, 'utf8')
+    for (const m of src.matchAll(/from\s*["']([^"']+)["']/g)) {
+      const spec = m[1]
+      if (spec.startsWith('.')) stack.push(join(join(file, '..'), spec))
+    }
+  }
+  return seen
+}
+
+// Is the esbuild toolchain (web/node_modules) installed in this checkout? The
+// bundle + Function lanes need it; the battery runs a root `npm ci` only, so
+// those lanes are a NAMED skip there and the CF Pages build covers them.
+const hasEsbuild = () => existsSync(join(root, 'web/node_modules/esbuild'))
+
+test('the engine core imports no node:* builtin (the workerd claim, at the source)', () => {
+  const graph = moduleGraph(join(root, 'src/workers.mjs'))
+  assert.ok(graph.size >= 4, `expected a real module graph (got ${graph.size} files)`)
+  const offenders = []
+  for (const file of graph) {
+    const src = readFileSync(file, 'utf8')
+    for (const m of src.matchAll(/(?:from|require\()\s*["'](node:[a-z/]+)["']/g)) {
+      offenders.push(`${relative(root, file)} -> ${m[1]}`)
+    }
+  }
+  assert.deepEqual(offenders, [], `the workers surface must reach no node:* builtin:\n${offenders.join('\n')}`)
+})
+
 test('the pure-JS sha256 matches node:crypto byte-for-byte (the receipt hash)', async () => {
   const { sha256 } = await import(join(root, 'src/sha256.mjs'))
   const { createHash } = await import('node:crypto')
@@ -92,14 +136,14 @@ test('a whole stamp runs in memory: config, walk, tokens, gitignore, manifest', 
   assert.ok(fs.existsSync('/out/.github/workflows/publish.yml'), 'the chained headless battery landed')
 })
 
-test('the workerd bundle carries no static node:fs and stamps through memoryFs', async () => {
+test('the workerd bundle carries no node:* and stamps through memoryFs', { skip: !hasEsbuild() && 'esbuild not installed (root npm ci only) - the CF Pages build covers the bundle' }, async () => {
   // Build the same artifact the Pages build produces.
   execFileSync(process.execPath, [join(root, 'web/scripts/build-canary.mjs')], { cwd: root, stdio: 'pipe' })
   const bundlePath = join(root, 'web/functions/_lib/monoforge-engine.mjs')
   assert.ok(existsSync(bundlePath), 'the canary bundle was built')
   const bundled = readFileSync(bundlePath, 'utf8')
-  assert.doesNotMatch(bundled, /from\s*["']node:fs["']/, 'no static node:fs import in the workers bundle')
-  assert.doesNotMatch(bundled, /require\(["']node:fs["']\)/, 'no require(node:fs) in the workers bundle')
+  const leaked = bundled.match(/(?:from|require\()\s*["'](node:[a-z/]+)["']/g)
+  assert.equal(leaked, null, `no node:* builtin may reach the workers bundle (found ${leaked})`)
 
   // Import the bundle as workerd would: `WebSocketPair` is defined there, which
   // is precisely the guard that keeps the Node default adapter (and its
@@ -122,7 +166,7 @@ test('the workerd bundle carries no static node:fs and stamps through memoryFs',
   assert.match(fs.readFileSync('/out/README.md', 'utf8'), /workers-canary/)
 })
 
-test('the deployed /api/stamp-canary Function stamps in memory and reports it', async () => {
+test('the deployed /api/stamp-canary Function stamps in memory and reports it', { skip: !hasEsbuild() && 'esbuild not installed (root npm ci only) - the CF Pages build covers the Function' }, async () => {
   execFileSync(process.execPath, [join(root, 'web/scripts/build-canary.mjs')], { cwd: root, stdio: 'pipe' })
 
   // Import the Function as workerd would (WebSocketPair defined), then call its
