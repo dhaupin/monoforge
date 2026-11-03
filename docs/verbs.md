@@ -3,7 +3,7 @@ version: '1.0'
 permalink: verbs/
 layout: default
 title: Verbs
-description: Every monoforge command is one short process - stamp, doctor, cut, lock, and the opt-in lint-packs lane. Four factory verbs plus the pack-lint passthrough, zero dependencies; the doctor refuses to ship generated green.
+description: Every monoforge command is one short process - stamp, doctor, cut, lock, the packs campaign, and the pack-lint lane. Four factory verbs plus the pack lanes, zero dependencies; the doctor refuses to ship generated green.
 nav_order: 2
 ---
 
@@ -100,12 +100,30 @@ monoforge lint-packs [--deep] [--json] [--against <lib>] [dir]
 The packstruct passthrough (crashtest's issue #32 shape, eyestruct's
 proven port): runs `packstruct lint` over the factory's own install -
 `node_modules/.bin` first, then PATH - never downloading or bundling one.
-The exit code IS the verdict: 0 clean, 1 findings, 2 setup refusal. Until
-the factory's own packs land there is no packstruct dependency to honor,
-so the verb today is the loud setup refusal naming the exact fix (`npm i
--D packstruct@<exact>`) - a never-working requested lane is a broken
-config, never a silent skip. Default dir: the packs ROOT; an explicit dir
-passes through untouched.
+The exit code IS the verdict: 0 clean, 1 findings, 2 setup refusal. With
+the factory's own packs landed (monoforge#3), packstruct rides `npm ci` at
+its EXACT pin and this verb lints them; if packstruct is absent it is the
+loud setup refusal naming the exact fix (`npm i -D packstruct@<exact>`) - a
+never-working requested lane is a broken config, never a silent skip.
+Default dir: the packs ROOT; an explicit dir passes through untouched.
+
+## packs - the check-profile pack campaign
+
+```bash
+monoforge packs [dir]
+monoforge loader <dir>
+```
+
+`packs` loads every pack under `packs/public` through `src/packs.mjs`, arms
+each with a read-only view of `dir` (default: the pack's own clean fixture,
+a representative stamped tree), runs it, and prints the verdict rows. A new
+`EXPLOITED` verdict fails the lane; `BOUNDED` never reads as green but does
+not fail it. `loader` is the bare SPEC loader: exit 0 clean, 1 violations,
+2 usage, with every refusal naming the pack. `src/packs.mjs` is graded by
+the SPEC's own harness - `packstruct audit-conformance . --loader "node
+src/packs.mjs {packs}"` honors it 8/8.
+
+## The storage seam - stamp from a worker, or from memory
 
 ## The storage seam - stamp from a worker, or from memory
 

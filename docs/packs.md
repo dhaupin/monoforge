@@ -9,11 +9,11 @@ nav_order: 3
 
 # Packs
 
-monoforge carries no packs of its own yet - deliberately, per the
-factory PRD's rule of three (a second real provider or a first real
-client pack is what motivates a built-in verb for them, and that does
-not exist yet). This page is the contract the family already agreed
-on, so the first pack arrives loadable instead of argued.
+monoforge now carries one pack of its own, `packs/public/forge-shapes`,
+and the loader the family's spec grades. The factory's *file-copying*
+stays in `templates/` (a pack can only read a tree, never write one);
+its *portable judgment* lives in a pack. This page is the contract the
+family agreed on, now backed by a working loader and a working pack.
 
 ## The two pack shapes
 
@@ -42,6 +42,28 @@ exists on disk, and a pack that does not fit the stamped shape is
 for now: local paths, explicit opt-in, honest refusals. No registry,
 no remote pack sources, no signing - each waits for evidence, not
 enthusiasm.
+
+## The loader and the lanes
+
+`src/packs.mjs` is the loader the shared SPEC's own harness grades:
+
+```bash
+npx packstruct audit-conformance . --loader "node src/packs.mjs {packs}"
+```
+
+It honors all 8/8 conformance cases. Every SPEC section-5 violation
+refuses instantly, one line, naming the pack - a wrong `schemaVersion`,
+a non-kebab name, a name/dir mismatch, a missing entry, an empty
+description, a bad version, or a cross-pack collision. Exit 0 clean /
+1 violations / 2 usage.
+
+Three family lanes ride `npm run check`:
+
+```bash
+npm run lint:packs     # packstruct lint packs --deep
+npm run conform:packs  # the loader harness above
+npm run packs          # run the packs over a tree (fails on a new EXPLOITED)
+```
 
 ## Where packs already run in the family
 

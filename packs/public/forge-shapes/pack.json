@@ -1,0 +1,13 @@
+{
+  "schemaVersion": 1,
+  "name": "forge-shapes",
+  "description": "File checks over a monoforge-stamped tree: the receipt ships and parses, every file the receipt claims exists, the truth-slot law holds (no FORGE-TODO, no raw __TOKEN__ survives), the package.json bin/exports/files entries all resolve, the publish workflow refuses 0.x refs and carries no publish token, and the docs gates the tree ships actually pass. Pure reads over a tree - zero network, zero writes.",
+  "version": "0.1.0",
+  "entry": "index.mjs",
+  "env": {
+    "fs": {
+      "targets": [".monoforge-stamp.json", "package.json", ".github/workflows/publish.yml", "docs/**/*.md"]
+    }
+  },
+  "implements": "packstruct@1"
+}

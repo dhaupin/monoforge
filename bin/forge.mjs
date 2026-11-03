@@ -16,7 +16,9 @@ Usage:
   monoforge doctor [dir]    run the truth battery (default: cwd)
   monoforge cut [dir]       cut a component-family workspace (cutlist.json + factory.json required)
   monoforge lock [dir]      doctor, then archive with a checksum
-  monoforge lint-packs      packstruct passthrough over the repo's own install (loud exit 2 until the packs land)
+  monoforge lint-packs      packstruct lint over the repo's own install (the factory's own packs)
+  monoforge packs [dir]     run the check-profile packs over a tree (default: this repo)
+  monoforge loader <dir>    load the packs under <dir> (the packstruct SPEC loader)
   monoforge harness <verb> <dir> [--grant kind:scope]
                             the headless stamp harness (monoforge#23): drive
                             new|doctor|lock in-process and print the structured
@@ -75,6 +77,15 @@ if (cmd === 'new') {
   const r = await run(verb, target, { grant })
   console.log(JSON.stringify(r, null, 2))
   process.exit(r.ok ? 0 : 1)
+} else if (cmd === 'packs') {
+  // The factory's own pack lane (monoforge#3): load packs/public, arm each with
+  // a read-only view of the tree, run it, print verdict rows. EXPLOITED fails.
+  const { spawnSync } = await import('node:child_process')
+  const r = spawnSync(process.execPath, [resolve(import.meta.dirname, '../scripts/run-packs.mjs'), ...process.argv.slice(3)], { stdio: 'inherit' })
+  process.exit(r.status ?? 1)
+} else if (cmd === 'loader') {
+  const { runLoader } = await import('../src/packs.mjs')
+  process.exit(await runLoader(process.argv.slice(3)))
 } else if (cmd === 'lint-packs') {
   // The pack lint lane as a discoverable verb (mirrors crashtest's
   // lint-packs, issue #32): ready now, honest exit 2 until the factory's

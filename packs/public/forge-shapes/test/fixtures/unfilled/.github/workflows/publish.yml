@@ -1,0 +1,12 @@
+name: publish
+on:
+  push:
+    tags: ['v*']
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          case "$V" in 0.*) echo "refusing 0.x"; exit 1;; esac
+        env:
+          V: ${{ github.ref_name }}

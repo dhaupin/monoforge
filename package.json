@@ -9,7 +9,8 @@
   "exports": {
     ".": "./src/index.mjs",
     "./workers": "./src/workers.mjs",
-    "./harness": "./src/harness.mjs"
+    "./harness": "./src/harness.mjs",
+    "./packs": "./src/packs.mjs"
   },
   "files": [
     "bin/",
@@ -18,11 +19,13 @@
     "spec/"
   ],
   "scripts": {
-    "test": "node test/run.mjs && node test/version-truth.mjs && node --test test/templates.test.cjs test/workers-compat.test.mjs test/harness.test.mjs test/ship-from-download.test.cjs test/release-verify.test.cjs test/docs-frontmatter.test.cjs test/web-imports.test.cjs test/status.test.mjs",
+    "test": "node test/run.mjs && node test/version-truth.mjs && node --test test/templates.test.cjs test/workers-compat.test.mjs test/harness.test.mjs test/packs.test.mjs test/ship-from-download.test.cjs test/release-verify.test.cjs test/docs-frontmatter.test.cjs test/web-imports.test.cjs test/status.test.mjs",
     "lint:packs": "node bin/forge.mjs lint-packs --deep",
+    "conform:packs": "packstruct audit-conformance . --loader \"node src/packs.mjs {packs}\"",
+    "packs": "node scripts/run-packs.mjs",
     "lint:docs": "node scripts/check-docs-frontmatter.cjs && node scripts/check-docs-links.cjs && node scripts/check-docs-style.cjs && node scripts/check-fiction-signatures.cjs && node scripts/check-jekyll-filters.cjs",
     "lint:language": "node scripts/check-language.cjs",
-    "check": "npm test && npm run lint:docs && npm run lint:language",
+    "check": "npm test && npm run lint:docs && npm run lint:language && npm run lint:packs && npm run conform:packs && npm run packs",
     "prepublishOnly": "npm run check",
     "icons:adopt": "node scripts/adopt-icons.mjs"
   },
