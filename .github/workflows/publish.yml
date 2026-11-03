@@ -155,10 +155,14 @@ jobs:
           set -e
           V="$(node -p "require('./package.json').version")"
           EXPORTS="$(node -p "Object.keys(require('./package.json').exports).join(',')")"
-          # The factory ships template dotfiles on purpose (templates/.github/,
-          # templates/labs/.eyes/) AND its verdict packs (packs/, poststruct#79 -
-          # the packs ride the published tarball so a consumer can run them), so
-          # both are permitted by name - a named escape, never a blanket amnesty.
+          # The factory ships template dotfiles on purpose, and the profiles are
+          # subdirs (coreforge template shape) so they live under
+          # templates/<profile>/.github/ and templates/<profile>/labs/.eyes/.
+          # The verdict packs ride the published tarball too (packs/,
+          # poststruct#79 - so a consumer can run them), so all three are
+          # permitted by name - a named escape, never a blanket amnesty. This
+          # list must track the profile layout: the flattened
+          # templates/.github/ prefix no longer names any shipped path.
           MF_PROBE="const p=require('monoforge');if(typeof p.stamp!=='function'||typeof p.doctor!=='function'||typeof p.lock!=='function')process.exit(1)"
-          node scripts/verify-release.cjs --npm --version "$V" --exports "$EXPORTS" --allow "templates/.github/,templates/labs/.eyes/,packs/" --probe "$MF_PROBE"
+          node scripts/verify-release.cjs --npm --version "$V" --exports "$EXPORTS" --allow "templates/monoforge-headless/.github/,templates/monoforge/labs/.eyes/,packs/" --probe "$MF_PROBE"
           node scripts/verify-release.cjs --gh --tag "v$V" --asset "monoforge-$V.tgz"
