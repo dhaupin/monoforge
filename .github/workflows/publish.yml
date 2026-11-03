@@ -156,8 +156,9 @@ jobs:
           V="$(node -p "require('./package.json').version")"
           EXPORTS="$(node -p "Object.keys(require('./package.json').exports).join(',')")"
           # The factory ships template dotfiles on purpose (templates/.github/,
-          # templates/labs/.eyes/), so they are permitted by name - a named
-          # escape, never a blanket dotfile amnesty.
+          # templates/labs/.eyes/) AND its verdict packs (packs/, poststruct#79 -
+          # the packs ride the published tarball so a consumer can run them), so
+          # both are permitted by name - a named escape, never a blanket amnesty.
           MF_PROBE="const p=require('monoforge');if(typeof p.stamp!=='function'||typeof p.doctor!=='function'||typeof p.lock!=='function')process.exit(1)"
-          node scripts/verify-release.cjs --npm --version "$V" --exports "$EXPORTS" --allow "templates/.github/,templates/labs/.eyes/" --probe "$MF_PROBE"
+          node scripts/verify-release.cjs --npm --version "$V" --exports "$EXPORTS" --allow "templates/.github/,templates/labs/.eyes/,packs/" --probe "$MF_PROBE"
           node scripts/verify-release.cjs --gh --tag "v$V" --asset "monoforge-$V.tgz"

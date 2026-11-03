@@ -1,6 +1,6 @@
 {
   "name": "monoforge",
-  "version": "0.9.0",
+  "version": "1.0.0",
   "description": "The struct-family factory: stamps a new fleet repo from proven template blocks, doctors it for truth, and locks it. Generated green is never shipped: the doctor refuses placeholder text and unverified gates.\n",
   "type": "module",
   "bin": {
@@ -16,10 +16,11 @@
     "bin/",
     "src/",
     "templates/",
-    "spec/"
+    "spec/",
+    "packs/"
   ],
   "scripts": {
-    "test": "node test/run.mjs && node test/version-truth.mjs && node --test test/templates.test.cjs test/workers-compat.test.mjs test/harness.test.mjs test/packs.test.mjs test/ship-from-download.test.cjs test/release-verify.test.cjs test/docs-frontmatter.test.cjs test/web-imports.test.cjs test/status.test.mjs",
+    "test": "node test/run.mjs && node test/version-truth.mjs && node test/distribution-run.mjs && node --test test/templates.test.cjs test/workers-compat.test.mjs test/harness.test.mjs test/packs.test.mjs test/ship-from-download.test.cjs test/release-verify.test.cjs test/docs-frontmatter.test.cjs test/web-imports.test.cjs test/status.test.mjs",
     "lint:packs": "node bin/forge.mjs lint-packs --deep",
     "conform:packs": "packstruct audit-conformance . --loader \"node src/packs.mjs {packs}\"",
     "packs": "node scripts/run-packs.mjs",

@@ -31,7 +31,7 @@ const pkg = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'))
 // template shape): the dotfiles live under templates/monoforge-headless/ and
 // templates/monoforge/.
 const exportsKeys = Object.keys(pkg.exports).join(',')
-const allow = 'templates/monoforge-headless/.github/,templates/monoforge/labs/.eyes/'
+const allow = 'templates/monoforge-headless/.github/,templates/monoforge/labs/.eyes/,packs/'
 const mfProbe = "const p=require('monoforge');if(typeof p.stamp!=='function'||typeof p.doctor!=='function'||typeof p.lock!=='function')process.exit(1)"
 
 function packTree(dest) {
