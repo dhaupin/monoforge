@@ -7,21 +7,36 @@
 // factory's last emission. A template path the host has edited since - a
 // crashtest.config.js, an AGENTS house-rules edit, a CI lane - is skipped by
 // name and never clobbered, so convergence never eats host state.
-import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync, rmSync, copyFileSync } from 'node:fs'
-import { createHash } from 'node:crypto'
-import { join, relative, dirname } from 'node:path'
-import { fileURLToPath } from 'node:url'
+//
+// Storage seam (monoforge#27): every filesystem touch goes through an injected
+// adapter (src/fs-adapter.mjs). The default IS `node:fs` under Node, so the CLI
+// is unchanged; a workers consumer passes `memoryFs()` to run the SAME engine
+// with no disk (the coreforge fork's reason for existing). The engine core
+// imports no `node:*` - paths come from src/paths.mjs and the receipt hash from
+// src/sha256.mjs - so it bundles for workerd with no compat flag.
+import { join, relative, dirname } from './paths.mjs'
+import { getDefaultFs } from './fs-adapter.mjs'
+import { sha256 } from './sha256.mjs'
 import { resolveTemplate, resolveChain, TEMPLATES } from './templates.mjs'
 
-const ROOT = join(fileURLToPath(new URL('..', import.meta.url)))
+// Pure-JS file-URL reader so the engine core imports no `node:*` (workerd
+// bundleable). A worker consumer passes `root`, so this default is Node-only.
+let ROOT_CACHE
+const fileUrlToPath = (u) => decodeURIComponent(String(u).replace(/^file:\/\//, '').replace(/^\/([A-Za-z]:)/, '$1'))
+const defaultRoot = () => (ROOT_CACHE ??= join(fileUrlToPath(new URL('..', import.meta.url))))
+const defaultFs = () => {
+  const fs = getDefaultFs()
+  if (!fs) throw new Error('no storage adapter is set - pass { fs: memoryFs() } (see src/fs-adapter.mjs)')
+  return fs
+}
 
-export function readFactoryConfig(dir) {
+export function readFactoryConfig(dir, { fs = defaultFs() } = {}) {
   const cfgPath = join(dir, 'factory.json')
-  if (!existsSync(cfgPath)) {
+  if (!fs.existsSync(cfgPath)) {
     return { ok: false, error: `no factory.json in ${dir}/ - monoforge new <dir> needs a config; see README for the schema` }
   }
   let cfg
-  try { cfg = JSON.parse(readFileSync(cfgPath, 'utf8')) } catch (e) {
+  try { cfg = JSON.parse(fs.readFileSync(cfgPath, 'utf8')) } catch (e) {
     return { ok: false, error: `factory.json is not valid JSON: ${e.message}` }
   }
   const required = ['name', 'species', 'pitch', 'description', 'siteDomain']
@@ -58,29 +73,28 @@ export function tokenReplacements(cfg, stampDate) {
 
 export const stampToolName = STAMP_TOOL
 
-// The receipt's per-file content hash. `stamp` records the sha256 of every
-// file it emits so a later re-stamp can tell a pristine template file (safe
-// to update) from a host-authored one (never clobbered): a stamped-template
-// path whose bytes no longer hash to the receipt is the host's now.
-export function sha256(s) {
-  return createHash('sha256').update(s).digest('hex')
-}
+// The receipt's per-file content hash (see src/sha256.mjs for why it is pure
+// JS rather than `node:crypto`). Re-exported so the engine's public surface is
+// unchanged.
+export { sha256 }
 
 // The receipt path a stamped tree carries. Its presence is what makes a
 // non-empty directory a RE-STAMP rather than a stray dir to refuse.
 export const RECEIPT = '.monoforge-stamp.json'
 
-export function readReceipt(dir) {
+export function readReceipt(dir, { fs = defaultFs() } = {}) {
   const p = join(dir, RECEIPT)
-  if (!existsSync(p)) return null
+  if (!fs.existsSync(p)) return null
   try {
-    const r = JSON.parse(readFileSync(p, 'utf8'))
+    const r = JSON.parse(fs.readFileSync(p, 'utf8'))
     return r && r.stampTool === STAMP_TOOL ? r : null
   } catch { return null }
 }
 
-export default async function stamp(dir) {
-  const cfgRes = readFactoryConfig(dir)
+export default async function stamp(dir, opts = {}) {
+  const fs = opts.fs ?? defaultFs()
+  const root = opts.root ?? defaultRoot()
+  const cfgRes = readFactoryConfig(dir, { fs })
   if (!cfgRes.ok) return { ok: false, error: cfgRes.error }
   const cfg = cfgRes.cfg
 
@@ -88,10 +102,10 @@ export default async function stamp(dir) {
   // receipt). Any OTHER non-empty directory is refused: never half-merge a
   // stranger's content. The receipt's own identity is checked, so a re-stamp
   // can never silently rewrite a repo that answers to a different name.
-  const receipt = readReceipt(dir)
+  const receipt = readReceipt(dir, { fs })
   const restamp = Boolean(receipt)
-  if (existsSync(dir)) {
-    const stray = readdirSync(dir).filter((f) => !['factory.json', '.git'].includes(f))
+  if (fs.existsSync(dir)) {
+    const stray = fs.readdirSync(dir).filter((f) => !['factory.json', '.git'].includes(f))
     if (stray.length && !restamp) {
       return { ok: false, error: `${dir} already contains ${stray.join(', ')} - run in an empty directory holding only factory.json` }
     }
@@ -109,13 +123,13 @@ export default async function stamp(dir) {
   }
   let resolved
   try {
-    resolved = resolveTemplate(profile)
+    resolved = resolveTemplate(profile, { fs, root })
   } catch (e) {
     return { ok: false, error: `template resolution failed: ${e.message}` }
   }
   if (resolved.size === 0) return { ok: false, error: `profile "${profile}" resolved to no files - the scaffold is missing templates/${profile}/` }
 
-  mkdirSync(dir, { recursive: true })
+  fs.mkdirSync(dir, { recursive: true })
   // Coexistence: on a re-stamp, a template path whose on-disk bytes no longer
   // match the receipt's recorded hash is host-authored (crashtest.config.js,
   // scenario packs, an edited AGENTS/CI lane) - skip it, loudly, never bleed.
@@ -125,14 +139,14 @@ export default async function stamp(dir) {
   const copied = []
   for (const [rel, src] of resolved) {
     const dest = join(dir, rel)
-    const exists = existsSync(dest)
+    const exists = fs.existsSync(dest)
     if (exists && restamp) {
       const recorded = priorHashes[rel]
-      const onDisk = sha256(readFileSync(dest, 'utf8'))
+      const onDisk = sha256(fs.readFileSync(dest, 'utf8'))
       if (recorded && onDisk !== recorded) { skipped.push(rel); continue }
     }
-    mkdirSync(dirname(dest), { recursive: true })
-    copyFileSync(src, dest)
+    fs.mkdirSync(dirname(dest), { recursive: true })
+    fs.copyFileSync(src, dest)
     copied.push(rel)
   }
 
@@ -144,30 +158,30 @@ export default async function stamp(dir) {
   // host-authored file keeps its bytes verbatim (a re-stamp never rewrites
   // the host's state, not even a stray token in it).
   const walk = (d) => {
-    for (const f of readdirSync(d, { withFileTypes: true })) {
+    for (const f of fs.readdirSync(d, { withFileTypes: true })) {
       const p = join(d, f.name)
       if (f.isDirectory()) { walk(p); continue }
       const rel = relative(dir, p)
       if (restamp && skipped.includes(rel)) continue
       if (restamp && !copied.includes(rel) && rel !== 'gitignore.tmpl') continue
-      let s = readFileSync(p, 'utf8')
+      let s = fs.readFileSync(p, 'utf8')
       const before = s
       for (const [tok, val] of reps) s = s.replaceAll(tok, val)
-      if (s !== before) { writeFileSync(p, s); filled++ }
+      if (s !== before) { fs.writeFileSync(p, s); filled++ }
       touched.push(rel)
     }
   }
   walk(dir)
   // gitignore.tmpl -> .gitignore
   const gi = join(dir, 'gitignore.tmpl')
-  if (existsSync(gi)) {
+  if (fs.existsSync(gi)) {
     const giRel = '.gitignore'
-    if (!(restamp && priorHashes[giRel] && sha256(readFileSync(join(dir, giRel), 'utf8')) !== priorHashes[giRel])) {
-      writeFileSync(join(dir, giRel), readFileSync(gi, 'utf8'))
+    if (!(restamp && priorHashes[giRel] && sha256(fs.readFileSync(join(dir, giRel), 'utf8')) !== priorHashes[giRel])) {
+      fs.writeFileSync(join(dir, giRel), fs.readFileSync(gi, 'utf8'))
     } else {
       skipped.push(giRel)
     }
-    rmSync(gi)
+    fs.rmSync(gi)
     if (!touched.includes(giRel)) touched.push(giRel)
   }
   // receipt: the record of what the stamp actually emitted. `files` keeps its
@@ -177,10 +191,10 @@ export default async function stamp(dir) {
   // sha256 of every path the stamp touched, as the factory LAST emitted it,
   // which a later re-stamp reads to tell a pristine template file from a
   // host-authored one.
-  const emitted = [...new Set([...touched, ...copied, ...skipped])].filter((rel) => existsSync(join(dir, rel)))
+  const emitted = [...new Set([...touched, ...copied, ...skipped])].filter((rel) => fs.existsSync(join(dir, rel)))
   const hashes = {}
   for (const rel of emitted) {
-    try { hashes[rel] = sha256(readFileSync(join(dir, rel), 'utf8')) } catch {}
+    try { hashes[rel] = sha256(fs.readFileSync(join(dir, rel), 'utf8')) } catch {}
   }
   // A skipped (host-authored) template path keeps the factory's LAST recorded
   // emission hash - not its own bytes - so every future re-stamp still reads
@@ -189,7 +203,7 @@ export default async function stamp(dir) {
   for (const rel of skipped) {
     if (priorHashes[rel]) hashes[rel] = priorHashes[rel]
   }
-  writeFileSync(join(dir, RECEIPT), JSON.stringify({
+  fs.writeFileSync(join(dir, RECEIPT), JSON.stringify({
     stampTool: STAMP_TOOL,
     name: cfg.name,
     version: cfg.version,

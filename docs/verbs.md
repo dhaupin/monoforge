@@ -107,6 +107,35 @@ so the verb today is the loud setup refusal naming the exact fix (`npm i
 config, never a silent skip. Default dir: the packs ROOT; an explicit dir
 passes through untouched.
 
+## The storage seam - stamp from a worker, or from memory
+
+`monoforge new` is not a CLI-only path: the stamp engine runs against a
+**storage adapter**, so the same truth machinery runs where `node:fs`
+does not exist. Two adapters ship:
+
+- `nodeFsAdapter` - real `node:fs`. This is the default under Node, so the
+  CLI is unchanged.
+- `memoryFs(seed)` - an in-memory tree. Seed it with
+  `{ '/path/file': 'contents' }` and the engine walks, copies, fills, and
+  writes entirely in memory.
+
+```js
+import { stamp, memoryFs } from 'monoforge/workers' // or 'monoforge' under Node
+
+const fs = memoryFs({
+  '/tpl/templates/monoforge/README.md': '# __NAME__\n',
+  '/out/factory.json': JSON.stringify(factory),
+})
+await stamp('/out', { fs, root: '/tpl' })
+```
+
+The engine core imports no `node:*` at all (path helpers live in
+`src/paths.mjs`), so a bundle built for workerd carries no `node:fs` - the
+`/api/stamp-canary` Pages Function is the living proof, stamping a template
+tree in memory at the edge and reporting what it produced. A consumer that
+only needs the engine + adapters imports `monoforge/workers`, which omits
+`doctor` and `lock` (they shell out to git and read disk).
+
 ## The release ladder
 
 0.9.x is manual npm publish; 1.0.0 flips to OIDC trusted publishing

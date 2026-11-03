@@ -18,11 +18,21 @@
 // The registry is the source of truth for `stamp` (which copies a resolved
 // profile into a new repo) and for the tests. It is the only place a profile
 // is declared; adding one is one entry here.
-import { existsSync, readdirSync, readFileSync } from 'node:fs'
-import { join } from 'node:path'
-import { fileURLToPath, pathToFileURL } from 'node:url'
+import { join } from './paths.mjs'
+import { getDefaultFs } from './fs-adapter.mjs'
 
-const ROOT = join(fileURLToPath(new URL('..', import.meta.url)))
+// The template root is computed lazily from `import.meta.url` with a pure-JS
+// file-URL reader, so the engine core imports NO `node:*` and stays bundleable
+// for workerd. A worker consumer always passes an explicit `root` (it has no
+// repo tree on disk), so this default is only ever evaluated under Node.
+let ROOT_CACHE
+const fileUrlToPath = (u) => decodeURIComponent(String(u).replace(/^file:\/\//, '').replace(/^\/([A-Za-z]:)/, '$1'))
+const defaultRoot = () => (ROOT_CACHE ??= join(fileUrlToPath(new URL('..', import.meta.url))))
+const defaultFs = () => {
+  const fs = getDefaultFs()
+  if (!fs) throw new Error('no storage adapter is set - pass { fs: memoryFs() } (see src/fs-adapter.mjs)')
+  return fs
+}
 
 // The profiles. `from` names the template dirs/files the stamp copies;
 // `chain` names child profiles composed underneath this one. A leaf profile
@@ -83,13 +93,15 @@ export function resolveChain(name, seen = []) {
 }
 
 // Load a profile's file map (rel -> source path) by walking templates/<name>/.
-// TEMPLATE.md is forge metadata, not payload, so it is skipped.
-export function loadProfile(name) {
-  const dir = join(ROOT, 'templates', name)
-  if (!existsSync(dir)) throw new Error(`template "${name}" is not present - the scaffold is missing templates/${name}/`)
+// TEMPLATE.md is forge metadata, not payload, so it is skipped. The walk runs
+// through the storage adapter, so a workers consumer seeding the template tree
+// into memoryFs resolves the SAME chain as Node does on disk.
+export function loadProfile(name, { fs = defaultFs(), root = defaultRoot() } = {}) {
+  const dir = join(root, 'templates', name)
+  if (!fs.existsSync(dir)) throw new Error(`template "${name}" is not present - the scaffold is missing templates/${name}/`)
   const files = new Map()
   const walk = (d, rel) => {
-    for (const e of readdirSync(d, { withFileTypes: true })) {
+    for (const e of fs.readdirSync(d, { withFileTypes: true })) {
       const r = rel ? `${rel}/${e.name}` : e.name
       if (e.isDirectory()) { walk(join(d, e.name), r); continue }
       if (r === 'TEMPLATE.md') continue
@@ -102,16 +114,18 @@ export function loadProfile(name) {
 
 // Resolve a profile into the file map `stamp` copies: children first, then the
 // parent, parent wins on collision (vant's override rule).
-export function resolveTemplate(name) {
+export function resolveTemplate(name, opts = {}) {
   const merged = new Map()
   for (const profile of resolveChain(name)) {
-    for (const [rel, src] of loadProfile(profile)) merged.set(rel, src)
+    for (const [rel, src] of loadProfile(profile, opts)) merged.set(rel, src)
   }
   return merged
 }
 
-// CLI: --list / --resolve NAME, for eyeballing and for the tests.
-if (import.meta.url === pathToFileURL(process.argv[1] || '').href) {
+// CLI: --list / --resolve NAME, for eyeballing and for the tests. Guarded so a
+// worker bundle (no `process.argv`) evaluates nothing here.
+const isNodeCli = typeof process !== 'undefined' && Array.isArray(process.argv) && process.argv[1]
+if (isNodeCli && fileUrlToPath(import.meta.url) === fileUrlToPath(process.argv[1])) {
   const argv = process.argv.slice(2)
   if (argv.includes('--list')) {
     for (const [name, cfg] of Object.entries(TEMPLATES)) {
@@ -123,7 +137,7 @@ if (import.meta.url === pathToFileURL(process.argv[1] || '').href) {
   const i = argv.indexOf('--resolve')
   if (i !== -1) {
     const name = argv[i + 1]
-    const files = resolveTemplate(name)
+    const files = resolveTemplate(name, { root: defaultRoot() })
     for (const rel of [...files.keys()].sort()) console.log(rel)
     console.log(`# ${files.size} file(s) from ${resolveChain(name).join(' + ')}`)
     process.exit(0)

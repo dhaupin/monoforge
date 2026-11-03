@@ -6,6 +6,7 @@
 import { mkdtempSync, mkdirSync, writeFileSync, rmSync, existsSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
+import '../src/fs-node.mjs' // install the node:fs storage adapter as the default
 import stamp from '../src/stamp.mjs'
 import doctor from '../src/doctor.mjs'
 

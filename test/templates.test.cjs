@@ -13,6 +13,9 @@ const root = path.join(__dirname, '..')
 const mod = path.join(root, 'src', 'templates.mjs')
 
 async function load() {
+  // Install the node:fs default adapter (the engine core is runtime-agnostic;
+  // see src/fs-adapter.mjs) before resolving templates off disk.
+  await import(pathToFileURL(path.join(root, 'src', 'fs-node.mjs')).href)
   // Fresh import each time so a test that mutates the registry does not leak.
   return import(pathToFileURL(mod).href + '?t=' + Math.random())
 }

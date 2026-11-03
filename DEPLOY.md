@@ -49,6 +49,13 @@ battery leg, a doc fix, or a named docket row) - the walk-exit rule in AGENTS.md
   fall outside the project and the canary would 404. Optionally set
   `SITE_NAME` in the Pages project vars; the function's fallback covers its
   absence.
+- **The workers storage-adapter canary:** `web/functions/api/stamp-canary.js`:
+  `GET /api/stamp-canary` runs the stamp engine against `memoryFs()` - no disk -
+  and returns what it produced (files, token fill, gitignore rename, manifest).
+  The engine is bundled for workerd by `web/scripts/build-canary.mjs` (run first
+  in `npm run build`); the script fails the build if `node:fs` leaks into the
+  bundle. This is the proof that the factory runs where `node:fs` does not
+  exist (monoforge#27).
 - **Do not add a `/* /index.html 200` SPA fallback** (`web/public/_redirects`
   explains why: every route prerenders its own HTML, and the fallback
   redirect-loops against CF's pretty URLs).
