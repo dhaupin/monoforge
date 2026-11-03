@@ -9,6 +9,27 @@ import { join, relative } from 'node:path'
 
 const TODO_MARK = 'FORGE-TODO'
 
+// The refusal code each finding id maps to (monoforge#23): a doctor failure is
+// a typed refusal, so a harness consumer reads `code`/`slot` rather than prose.
+// Warns carry no code (a warn is not a refusal). A failing id absent from this
+// map is a bug the harness test catches, never a silent prose-only failure.
+export const CODE_BY_ID = {
+  'stamp-manifest': 'E_STAMP_MANIFEST',
+  'truth-slot': 'E_TRUTH_SLOT',
+  'stamp-token': 'E_STAMP_TOKEN',
+  'package-json': 'E_PACKAGE_JSON',
+  'bin-path': 'E_BIN_PATH',
+  'exports-path': 'E_EXPORTS_PATH',
+  'files-path': 'E_FILES_PATH',
+  'publish-gate': 'E_PUBLISH_GATE',
+  'publish-token': 'E_PUBLISH_TOKEN',
+  'npm-test': 'E_NPM_TEST',
+  'docs-gate': 'E_DOCS_GATE',
+  'dash-law': 'E_DASH_LAW',
+  'canon-pin': 'E_CANON_PIN',
+  'dangling-canon': 'E_DANGLING_CANON',
+}
+
 // Untracked scratch trees used to land in the battery through the walk
 // (prestruct's beta false-positive class): a .gitignore at the root is the
 // cheap truth about what is scratch, and scratch is by definition not
@@ -55,7 +76,9 @@ function gitClean(dir) {
 
 export default async function doctor(dir, opts = {}) {
   const findings = []
-  const fail = (id, message) => findings.push({ level: 'fail', id, message })
+  // A fail carries its registered refusal code and the slot it names; a warn
+  // carries neither (a warn is not a refusal).
+  const fail = (id, message, slot = null) => findings.push({ level: 'fail', id, code: CODE_BY_ID[id] || null, slot, message })
   const warn = (id, message) => findings.push({ level: 'warn', id, message })
 
   // 1. git state (warn: dirty tree ships? no. but a lock needs clean)
@@ -70,7 +93,7 @@ export default async function doctor(dir, opts = {}) {
   if (existsSync(manifestPath)) {
     let manifest
     try { manifest = JSON.parse(readFileSync(manifestPath, 'utf8')) } catch (e) {
-      fail('stamp-manifest', `.monoforge-stamp.json is unparseable: ${e.message}`)
+      fail('stamp-manifest', `.monoforge-stamp.json is unparseable: ${e.message}`, '.monoforge-stamp.json')
       manifest = { files: [] }
     }
     for (const rel of manifest.files || []) {
@@ -80,12 +103,12 @@ export default async function doctor(dir, opts = {}) {
       let s
       try { s = readFileSync(p, 'utf8') } catch { continue }
       const n = (s.match(new RegExp(TODO_MARK, 'g')) || []).length
-      if (n) fail('truth-slot', `${rel} still carries ${n} ${TODO_MARK} slot(s): a shipped placeholder is a shipped lie`)
+      if (n) fail('truth-slot', `${rel} still carries ${n} ${TODO_MARK} slot(s): a shipped placeholder is a shipped lie`, rel)
       // stamp-token pass (eyestruct dogfood, 2026-10-24): raw __X__ tokens
       // are the truth-slot class wearing a different uniform; the same law
       // applies (a shipped placeholder is a shipped lie).
       const raw = s.match(/__[A-Z][A-Z0-9_]*__/g) || []
-      if (raw.length) fail('stamp-token', `${rel} still carries raw stamp token(s): ${[...new Set(raw)].join(', ')} - the stamp never finished`)
+      if (raw.length) fail('stamp-token', `${rel} still carries raw stamp token(s): ${[...new Set(raw)].join(', ')} - the stamp never finished`, rel)
     }
   }
 
@@ -93,23 +116,23 @@ export default async function doctor(dir, opts = {}) {
   const pkgPath = join(dir, 'package.json')
   if (existsSync(pkgPath)) {
     let pkg
-    try { pkg = JSON.parse(readFileSync(pkgPath, 'utf8')) } catch (e) { fail('package-json', `unparseable: ${e.message}`); pkg = null }
+    try { pkg = JSON.parse(readFileSync(pkgPath, 'utf8')) } catch (e) { fail('package-json', `unparseable: ${e.message}`, 'package.json'); pkg = null }
     if (pkg) {
       if (pkg?.bin) {
         for (const b of Object.values(pkg.bin)) {
-          if (!existsSync(join(dir, b))) fail('bin-path', `bin entry ${b} does not exist (the crashtest#16 class, in our own clothes)`)
+          if (!existsSync(join(dir, b))) fail('bin-path', `bin entry ${b} does not exist (the crashtest#16 class, in our own clothes)`, b)
         }
       }
       if (pkg?.exports) {
         for (const v of Object.values(pkg.exports)) {
           const p2 = typeof v === 'string' ? v : v?.import
-          if (p2 && !p2.includes('*') && !existsSync(join(dir, p2))) fail('exports-path', `exports entry ${p2} does not exist`) // deep-import glob passthroughs are valid package.json (prestruct beta class #1)
+          if (p2 && !p2.includes('*') && !existsSync(join(dir, p2))) fail('exports-path', `exports entry ${p2} does not exist`, p2) // deep-import glob passthroughs are valid package.json (prestruct beta class #1)
         }
       }
       for (const f of pkg.files || []) {
         if (f.startsWith('!')) continue // negation: npm's exclude mechanism inside the whitelist, never a must-exist path (prestruct beta class #2)
         const p3 = join(dir, f)
-        if (!existsSync(p3) && !f.includes('*')) fail('files-path', `files entry ${f} does not exist in the tree`)
+        if (!existsSync(p3) && !f.includes('*')) fail('files-path', `files entry ${f} does not exist in the tree`, f)
       }
       if (!pkg.description || pkg.description.length < 10) warn('description', 'package.json description missing or too thin')
       if ((pkg.engines?.node || '') < '>=20') warn('engines', 'engines.node floor not >=20 (house runtime floor)')
@@ -119,14 +142,14 @@ export default async function doctor(dir, opts = {}) {
         const w = readFileSync(pub, 'utf8')
         // Two accepted shapes: the `startsWith(github.ref_name,'v0.')` job
         // guard, or the OIDC ladder's `case "$V" in 0.*)` version gate.
-        if (!/startsWith\(['"]v0\.|0\.\*\)/.test(w)) fail('publish-gate', '.github/workflows/publish.yml does not refuse 0.x refs (the OIDC ladder gate)')
+        if (!/startsWith\(['"]v0\.|0\.\*\)/.test(w)) fail('publish-gate', '.github/workflows/publish.yml does not refuse 0.x refs (the OIDC ladder gate)', '.github/workflows/publish.yml')
         // The family law (rule #3: the NPM_TOKEN bug was caught twice - in the
         // live workflow and in the template - so it becomes a gate). A real
         // `secrets.NPM_TOKEN` reference is a violation; a comment that merely
         // names the removed line is not. Strip comment lines, then scan.
         const codeLines = w.split('\n').filter((l) => !/^\s*#/.test(l)).join('\n')
         if (/secrets\.NPM_TOKEN|NODE_AUTH_TOKEN/.test(codeLines)) {
-          fail('publish-token', '.github/workflows/publish.yml references a publish token (secrets.NPM_TOKEN / NODE_AUTH_TOKEN) - the family law is OIDC trusted publishing only, no publish tokens anywhere')
+          fail('publish-token', '.github/workflows/publish.yml references a publish token (secrets.NPM_TOKEN / NODE_AUTH_TOKEN) - the family law is OIDC trusted publishing only, no publish tokens anywhere', '.github/workflows/publish.yml')
         }
       }
       // 5. npm test
@@ -134,7 +157,7 @@ export default async function doctor(dir, opts = {}) {
         try {
           execFileSync('npm', ['test', '--silent'], { cwd: dir, stdio: 'pipe' })
         } catch {
-          fail('npm-test', 'npm test failed: the negative test is the product, not an optional extra')
+          fail('npm-test', 'npm test failed: the negative test is the product, not an optional extra', 'npm test')
         }
       } else warn('npm-test', 'no test script: nothing self-audits')
     }
@@ -148,7 +171,7 @@ export default async function doctor(dir, opts = {}) {
       const gp = join(dir, 'scripts', g2)
       if (!existsSync(gp)) { warn('docs-gate', `missing gate script scripts/${g2} (stamped repos always carry them)`); continue }
       try { execFileSync('node', [gp, d], { cwd: dir, stdio: 'pipe' }) }
-      catch (e) { fail('docs-gate', `scripts/${g2} failed: ${String(e.stderr || e.message).split('\n')[0]}`) }
+      catch (e) { fail('docs-gate', `scripts/${g2} failed: ${String(e.stderr || e.message).split('\n')[0]}`, `scripts/${g2}`) }
     }
   }
   for (const p of files) {
@@ -157,7 +180,7 @@ export default async function doctor(dir, opts = {}) {
     try { s = readFileSync(p, 'utf8') } catch { continue }
     if (/[\u2014\u2013]/.test(s)) {
       const line = s.split('\n').findIndex((l) => /[\u2014\u2013]/.test(l)) + 1
-      fail('dash-law', `${relative(dir, p)} line ${line}: em/en dash in prose (house law: none, ever)`)
+      fail('dash-law', `${relative(dir, p)} line ${line}: em/en dash in prose (house law: none, ever)`, relative(dir, p))
     }
   }
 
@@ -172,7 +195,7 @@ export default async function doctor(dir, opts = {}) {
     if (existsSync(manifestFile)) {
       let s
       try { s = readFileSync(manifestFile, 'utf8') } catch {
-        fail('canon-pin', `${eyesHome}/manifest.yml is not readable`)
+        fail('canon-pin', `${eyesHome}/manifest.yml is not readable`, `${eyesHome}/manifest.yml`)
         return
       }
       // The pin block parses in the family subset, and every seeded pin
@@ -184,16 +207,16 @@ export default async function doctor(dir, opts = {}) {
         for (const line of m[1].split('\n')) {
           if (!line.trim()) continue
           const kv = line.trim().match(/^([\w-]+):\s*(.+)$/)
-          if (!kv) { fail('canon-pin', `${eyesHome}/manifest.yml pin row is not key: value -> "${line.trim()}"`); continue }
+          if (!kv) { fail('canon-pin', `${eyesHome}/manifest.yml pin row is not key: value -> "${line.trim()}"`, `${eyesHome}/manifest.yml`); continue }
           pin[kv[1]] = kv[2].trim()
         }
       } else {
-        fail('canon-pin', `${eyesHome}/manifest.yml carries no pin block (the canon token the captures resolve)`)
+        fail('canon-pin', `${eyesHome}/manifest.yml carries no pin block (the canon token the captures resolve)`, `${eyesHome}/manifest.yml`)
       }
       for (const key of ['browser-image', 'renderer']) {
         const v = pin[key] || ''
-        if (!v) fail('canon-pin', `${eyesHome}/manifest.yml pin.${key} is missing (the canon cannot resolve without it)`)
-        else if (/\bUNSET\b|edit-me/i.test(v)) fail('canon-pin', `${eyesHome}/manifest.yml pin.${key} is still "${v}" - a shipped UNSET pin is a canon token pointing at nothing`)
+        if (!v) fail('canon-pin', `${eyesHome}/manifest.yml pin.${key} is missing (the canon cannot resolve without it)`, `${eyesHome}/manifest.yml`)
+        else if (/\bUNSET\b|edit-me/i.test(v)) fail('canon-pin', `${eyesHome}/manifest.yml pin.${key} is still "${v}" - a shipped UNSET pin is a canon token pointing at nothing`, `${eyesHome}/manifest.yml`)
       }
     }
     if (!existsSync(ledgerFile)) return
@@ -201,24 +224,24 @@ export default async function doctor(dir, opts = {}) {
     try {
       rows = JSON.parse(readFileSync(ledgerFile, 'utf8'))
     } catch (e) {
-      fail('dangling-canon', `${eyesHome}/ledger.json does not parse (LEDGER_CORRUPT): the gate would refuse it loudly - the doctor refuses first`)
+      fail('dangling-canon', `${eyesHome}/ledger.json does not parse (LEDGER_CORRUPT): the gate would refuse it loudly - the doctor refuses first`, `${eyesHome}/ledger.json`)
       return
     }
     if (!Array.isArray(rows)) {
-      fail('dangling-canon', `${eyesHome}/ledger.json is not an array of rows (LEDGER_CORRUPT)`)
+      fail('dangling-canon', `${eyesHome}/ledger.json is not an array of rows (LEDGER_CORRUPT)`, `${eyesHome}/ledger.json`)
       return
     }
     const refs = []
     for (const row of rows) {
-      if (!row || typeof row !== 'object') { fail('dangling-canon', `${eyesHome}/ledger.json carries a row that is not an object`); continue }
+      if (!row || typeof row !== 'object') { fail('dangling-canon', `${eyesHome}/ledger.json carries a row that is not an object`, `${eyesHome}/ledger.json`); continue }
       if (typeof row.artifact === 'string') refs.push({ id: row.id, p: row.artifact })
       if (Array.isArray(row.artifacts)) for (const a of row.artifacts) if (typeof a === 'string') refs.push({ id: row.id, p: a })
     }
     for (const { id, p } of refs) {
       if (typeof p !== 'string' || p.startsWith('/') || p.split(/[\\/]/).includes('..')) {
-        fail('dangling-canon', `${eyesHome}/ledger.json row ${id || '?'} path "${p}" escapes the eyes home (UNSAFE_PATH)`)
+        fail('dangling-canon', `${eyesHome}/ledger.json row ${id || '?'} path "${p}" escapes the eyes home (UNSAFE_PATH)`, id || null)
       } else if (!existsSync(join(dir, eyesHome, p))) {
-        fail('dangling-canon', `${eyesHome}/ledger.json row ${id || '?'} points at "${p}" and no such committed artifact exists (DANGLING_ROW: the row references a file that no longer exists)`)
+        fail('dangling-canon', `${eyesHome}/ledger.json row ${id || '?'} points at "${p}" and no such committed artifact exists (DANGLING_ROW: the row references a file that no longer exists)`, id || null)
       }
     }
   }

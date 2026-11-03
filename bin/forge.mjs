@@ -17,6 +17,10 @@ Usage:
   monoforge cut [dir]       cut a component-family workspace (cutlist.json + factory.json required)
   monoforge lock [dir]      doctor, then archive with a checksum
   monoforge lint-packs      packstruct passthrough over the repo's own install (loud exit 2 until the packs land)
+  monoforge harness <verb> <dir> [--grant kind:scope]
+                            the headless stamp harness (monoforge#23): drive
+                            new|doctor|lock in-process and print the structured
+                            result { verb, ok, verdicts, refusals, grant, receipt }
   monoforge help            this
 
 factory.json (in <dir>, required):
@@ -54,6 +58,23 @@ if (cmd === 'new') {
   if (!r.ok) { console.error(`lock: ${r.error}`); if (r.doctor) { for (const f of r.doctor.findings) console.log(`  ${f.level.toUpperCase()} ${f.id}: ${f.message}`) } process.exit(1) }
   console.log(`lock: OK (sha256 ${r.sha}...) archived ${r.archive}`)
   process.exit(0)
+} else if (cmd === 'harness') {
+  // The headless stamp harness (monoforge#23): the same verbs as an
+  // in-process, structured surface, so railyard's door drives the stamp loop
+  // and reads typed refusals (registered in spec/refusals.json) instead of
+  // prose. --grant kind:scope echoes the grant row for the audit ledger.
+  const { run } = await import('../src/harness.mjs')
+  const verb = process.argv[3] || 'doctor'
+  const target = resolve(process.argv[4] || '.')
+  const gi = process.argv.indexOf('--grant')
+  let grant = null
+  if (gi >= 0 && process.argv[gi + 1]) {
+    const [kind, ...rest] = process.argv[gi + 1].split(':')
+    grant = { kind, scope: rest.join(':') }
+  }
+  const r = await run(verb, target, { grant })
+  console.log(JSON.stringify(r, null, 2))
+  process.exit(r.ok ? 0 : 1)
 } else if (cmd === 'lint-packs') {
   // The pack lint lane as a discoverable verb (mirrors crashtest's
   // lint-packs, issue #32): ready now, honest exit 2 until the factory's

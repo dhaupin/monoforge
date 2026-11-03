@@ -23,6 +23,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
+- **A headless stamp harness with typed refusals (monoforge#23).** `monoforge
+  harness <verb> <dir>` (module: `runHarness` / `run` from `monoforge`) drives
+  `new`, `doctor`, and `lock` in-process and returns one structured result,
+  `{ verb, ok, verdicts, refusals, grant, receipt }`, so railyard's door can run
+  the stamp loop without a shell and read verdicts instead of prose. Every
+  refusal is `{ code, slot, detail }` and every code is registered in the new
+  `spec/refusals.json` (the shared govstruct vocabulary, G10); the harness
+  refuses to emit a code it has not registered, so a typo cannot become a logged
+  refusal. The doctor's fails now carry their code and slot (`E_TRUTH_SLOT`
+  naming the slot, `E_BIN_PATH` naming the entry, and so on), the stamp and lock
+  refusals are coded too, and an optional `--grant kind:scope` is echoed back
+  (kind, scope, `spent: true`) for the caller's audit ledger (G5/G14) without
+  the forge ever seeing the credential. In-process only, no sockets.
+
 - **A re-stamp no longer clobbers a stamped repo's host-authored artifacts
   (monoforge#4).** `stamp` records the sha256 of every file it emits in the
   receipt's new `hashes` map. Re-running `monoforge new` over a tree carrying
