@@ -20,4 +20,4 @@
 - All prose submits to the voice law: zero dashes of any kind, no AI-cliche constructions, plain declarative sentences only.
 
 ## Release
-- 0.9.0 = current manual npm. 1.0.0 flips OIDC; publish.yml refuses 0.x.
+- 1.0.0 rides OIDC; publish.yml refuses 0.x. 0.x landed by hand.

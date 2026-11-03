@@ -90,3 +90,10 @@ Promoted `staging` to `main` (fast-forward - `main` was a strict ancestor, no di
 - 0.9.0 -> 1.0.0 across the version-truth surfaces (`package.json`, `factory.json`, the README H1) plus the `## [1.0.0] - 2026-11-03` changelog section the release job extracts.
 - The release-verify ladder permits `packs/` by name alongside the template-dotfile escapes; a new `test/distribution-run.mjs` refuses a `files` list that would silently un-deliver the packs.
 - Gates: `npm run check` green (docs/fiction/jekyll/language/packs + conform 8/8).
+
+## 2026-11-03 - v1.0.0 release notes + announcements
+
+- The release-post tree lands for both lines: `docs/discussions/announcing-v0.9.0.md` (backfilled) and `docs/discussions/announcing-v1.0.0.md` (staged), with the index table updated to name both.
+- Version truth reconciled after the bump: `package-lock.json` re-derived (root version 0.9.0 -> 1.0.0, a version-only diff), and the AGENTS release prose made era-free (it still called 0.9.0 "current").
+- Tarball re-verified at 1.0.0: 82 files, `/packs` present (29 entries, 28 under `/packs/public`).
+- Gates: `npm run check` green (docs 12 pages, style/language/fiction/jekyll, packs conform 8/8).

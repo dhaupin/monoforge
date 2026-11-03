@@ -24,5 +24,6 @@ One post per release, the conventions adopted across the creadev family: eyestru
 | post | version | live |
 | --- | --- | --- |
 | [Announcing monoforge v0.9.0](./announcing-v0.9.0) | 0.9.0 | yes - the factory's first release line; drops to Discussions when the package lands on the registry |
+| [Announcing monoforge v1.0.0](./announcing-v1.0.0) | 1.0.0 | not yet - draft staged; drops when the v1.0.0 tag ships |
 
 Release-time edits the staged draft accepts: the release URL fills in from the tag, and the npm one-liner moves only if the package slot does.
