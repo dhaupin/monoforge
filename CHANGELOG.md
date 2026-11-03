@@ -23,6 +23,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
+- **The packs loader and the two pack lanes (monoforge#3).** `src/packs.mjs` is
+  the packstruct SPEC v1 loader, graded by the spec's own harness (`packstruct
+  audit-conformance . --loader "node src/packs.mjs {packs}"` honors it 8/8).
+  Every section-5 violation refuses instantly, in one line, naming the pack:
+  wrong `schemaVersion`, non-kebab name, name/dir mismatch, missing entry,
+  empty description, bad version, and a cross-pack collision. A new
+  `monoforge packs [dir]` verb runs the check-profile packs over a tree (fails
+  on a new `EXPLOITED`), and `monoforge loader <dir>` is the bare loader. The
+  factory's first pack, `packs/public/forge-shapes`, carries six pure-reading
+  checks over a stamped tree (receipt present, receipted files exist, no
+  `FORGE-TODO`, no raw `__TOKEN__`, package paths resolve, publish gate
+  refuses 0.x) with `test/fixtures/` proving every verdict both ways.
+  `package.json` gains the family lanes `lint:packs` (`packstruct lint packs
+  --deep`), `conform:packs`, and `packs`, all three chained into `check`.
+
 - **A headless stamp harness with typed refusals (monoforge#23).** `monoforge
   harness <verb> <dir>` (module: `runHarness` / `run` from `monoforge`) drives
   `new`, `doctor`, and `lock` in-process and returns one structured result,

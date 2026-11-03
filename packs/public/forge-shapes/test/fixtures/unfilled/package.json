@@ -1,0 +1,14 @@
+{
+  "name": "probe",
+  "version": "0.9.0",
+  "type": "module",
+  "bin": {
+    "probe": "./bin/probe.mjs"
+  },
+  "files": [
+    "bin/"
+  ],
+  "engines": {
+    "node": ">=20"
+  }
+}
