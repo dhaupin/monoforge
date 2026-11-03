@@ -136,6 +136,45 @@ tree in memory at the edge and reporting what it produced. A consumer that
 only needs the engine + adapters imports `monoforge/workers`, which omits
 `doctor` and `lock` (they shell out to git and read disk).
 
+## The headless harness - the same verbs, structured
+
+The CLI is one face of the factory; the harness is the other. `monoforge
+harness <verb> <dir>` drives `new`, `doctor`, or `lock` in-process and prints
+one structured result, so another tool (railyard's `railyard_stamp`) can run
+the stamp loop without a shell and read verdicts instead of prose:
+
+```json
+{
+  "verb": "lock",
+  "ok": true,
+  "verdicts": [
+    { "gate": "monoforge doctor", "ok": true, "counts": { "fail": 0, "warn": 0 } },
+    { "gate": "monoforge lock", "ok": true, "counts": { "fail": 0, "warn": 0 } }
+  ],
+  "refusals": [],
+  "grant": { "kind": "github-app", "scope": "dhaupin/probe", "spent": true },
+  "receipt": { "gate": "monoforge lock", "archive": "probe-0.9.0-lock.tar.gz", "sha": "..." }
+}
+```
+
+Every refusal is **typed**: `{ code, slot, detail }`. The codes are
+registered in `spec/refusals.json` (the shared govstruct vocabulary, G10),
+and the harness refuses to emit a code it has not registered - a typo cannot
+become a logged refusal. A failing doctor returns its fails as refusals
+(`E_TRUTH_SLOT` naming the slot, `E_BIN_PATH` naming the entry, and so on);
+a refused lock is `E_LOCK_REFUSED`.
+
+The optional `--grant kind:scope` context is echoed back (kind, scope, and
+`spent: true`) so a caller's audit ledger can record the spend (G5/G14).
+The forge never reads the credential itself - the grant is opaque.
+
+```bash
+monoforge harness lock ./my-repo --grant github-app:dhaupin/my-repo
+```
+
+In-process only, no sockets: the family law. The module surface is the same
+(`import { runHarness } from 'monoforge'`).
+
 ## The release ladder
 
 0.9.x is manual npm publish; 1.0.0 flips to OIDC trusted publishing

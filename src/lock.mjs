@@ -9,7 +9,7 @@ import doctor from './doctor.mjs'
 export default async function lock(dir, opts = {}) {
   const r = await doctor(dir, opts)
   if (r.counts.fail > 0) {
-    return { ok: false, error: `lock refused: ${r.counts.fail} doctor fail(s) - fix first, locks do not ship broken`, doctor: r }
+    return { ok: false, code: 'E_LOCK_REFUSED', slot: null, error: `lock refused: ${r.counts.fail} doctor fail(s) - fix first, locks do not ship broken`, doctor: r }
   }
   let pkg
   try { pkg = JSON.parse(readFileSync(join(dir, 'package.json'), 'utf8')) } catch { pkg = {} }

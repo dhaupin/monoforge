@@ -8,15 +8,17 @@
   },
   "exports": {
     ".": "./src/index.mjs",
-    "./workers": "./src/workers.mjs"
+    "./workers": "./src/workers.mjs",
+    "./harness": "./src/harness.mjs"
   },
   "files": [
     "bin/",
     "src/",
-    "templates/"
+    "templates/",
+    "spec/"
   ],
   "scripts": {
-    "test": "node test/run.mjs && node test/version-truth.mjs && node --test test/templates.test.cjs test/workers-compat.test.mjs test/ship-from-download.test.cjs test/release-verify.test.cjs test/docs-frontmatter.test.cjs test/web-imports.test.cjs test/status.test.mjs",
+    "test": "node test/run.mjs && node test/version-truth.mjs && node --test test/templates.test.cjs test/workers-compat.test.mjs test/harness.test.mjs test/ship-from-download.test.cjs test/release-verify.test.cjs test/docs-frontmatter.test.cjs test/web-imports.test.cjs test/status.test.mjs",
     "lint:packs": "node bin/forge.mjs lint-packs --deep",
     "lint:docs": "node scripts/check-docs-frontmatter.cjs && node scripts/check-docs-links.cjs && node scripts/check-docs-style.cjs && node scripts/check-fiction-signatures.cjs && node scripts/check-jekyll-filters.cjs",
     "lint:language": "node scripts/check-language.cjs",

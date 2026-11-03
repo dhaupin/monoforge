@@ -33,17 +33,17 @@ const defaultFs = () => {
 export function readFactoryConfig(dir, { fs = defaultFs() } = {}) {
   const cfgPath = join(dir, 'factory.json')
   if (!fs.existsSync(cfgPath)) {
-    return { ok: false, error: `no factory.json in ${dir}/ - monoforge new <dir> needs a config; see README for the schema` }
+    return { ok: false, code: 'E_CONFIG_MISSING', slot: 'factory.json', error: `no factory.json in ${dir}/ - monoforge new <dir> needs a config; see README for the schema` }
   }
   let cfg
   try { cfg = JSON.parse(fs.readFileSync(cfgPath, 'utf8')) } catch (e) {
-    return { ok: false, error: `factory.json is not valid JSON: ${e.message}` }
+    return { ok: false, code: 'E_CONFIG_INVALID', slot: 'factory.json', error: `factory.json is not valid JSON: ${e.message}` }
   }
   const required = ['name', 'species', 'pitch', 'description', 'siteDomain']
   const missing = required.filter((k) => typeof cfg[k] !== 'string' || !cfg[k].trim())
-  if (missing.length) return { ok: false, error: `factory.json missing required keys: ${missing.join(', ')}` }
-  if (!/^[a-z0-9][a-z0-9-]*$/.test(cfg.name)) return { ok: false, error: `name must be kebab-case (got ${JSON.stringify(cfg.name)})` }
-  if (!/^https:\/\//.test(cfg.siteDomain)) return { ok: false, error: 'siteDomain must be an absolute https URL (the landing domain)' }
+  if (missing.length) return { ok: false, code: 'E_FIELD_MISSING', slot: missing.join(', '), error: `factory.json missing required keys: ${missing.join(', ')}` }
+  if (!/^[a-z0-9][a-z0-9-]*$/.test(cfg.name)) return { ok: false, code: 'E_ID_FORMAT', slot: 'name', error: `name must be kebab-case (got ${JSON.stringify(cfg.name)})` }
+  if (!/^https:\/\//.test(cfg.siteDomain)) return { ok: false, code: 'E_SITE_DOMAIN', slot: 'siteDomain', error: 'siteDomain must be an absolute https URL (the landing domain)' }
   cfg.docsPath = typeof cfg.docsPath === 'string' && cfg.docsPath.trim() ? cfg.docsPath.trim() : `docs.creadev.org/${cfg.name}`
   cfg.version = typeof cfg.version === 'string' && /^\d+\.\d+(\.\d+)?$/.test(cfg.version) ? cfg.version : '0.9.0'
   cfg.docsHost = cfg.docsPath.split('/')[0]
@@ -95,7 +95,7 @@ export default async function stamp(dir, opts = {}) {
   const fs = opts.fs ?? defaultFs()
   const root = opts.root ?? defaultRoot()
   const cfgRes = readFactoryConfig(dir, { fs })
-  if (!cfgRes.ok) return { ok: false, error: cfgRes.error }
+  if (!cfgRes.ok) return { ok: false, code: cfgRes.code, slot: cfgRes.slot, error: cfgRes.error }
   const cfg = cfgRes.cfg
 
   // A re-stamp overlays a tree this factory already stamped (it carries our
@@ -107,10 +107,10 @@ export default async function stamp(dir, opts = {}) {
   if (fs.existsSync(dir)) {
     const stray = fs.readdirSync(dir).filter((f) => !['factory.json', '.git'].includes(f))
     if (stray.length && !restamp) {
-      return { ok: false, error: `${dir} already contains ${stray.join(', ')} - run in an empty directory holding only factory.json` }
+      return { ok: false, code: 'E_STRAY_DIR', slot: dir, error: `${dir} already contains ${stray.join(', ')} - run in an empty directory holding only factory.json` }
     }
     if (restamp && receipt.name && receipt.name !== cfg.name) {
-      return { ok: false, error: `${dir} was stamped as "${receipt.name}" - refusing to re-stamp it as "${cfg.name}" (identity drift is not a re-stamp)` }
+      return { ok: false, code: 'E_IDENTITY_DRIFT', slot: 'name', error: `${dir} was stamped as "${receipt.name}" - refusing to re-stamp it as "${cfg.name}" (identity drift is not a re-stamp)` }
     }
   }
   // Resolve the profile's chain (children first, parent wins on collision) and
@@ -119,15 +119,15 @@ export default async function stamp(dir, opts = {}) {
   // same law as a bad config.
   const profile = typeof cfg.profile === 'string' && cfg.profile.trim() ? cfg.profile.trim() : 'monoforge'
   if (!TEMPLATES[profile]) {
-    return { ok: false, error: `factory.json profile "${profile}" is not a known profile (known: ${Object.keys(TEMPLATES).join(', ')})` }
+    return { ok: false, code: 'E_PROFILE_UNKNOWN', slot: 'profile', error: `factory.json profile "${profile}" is not a known profile (known: ${Object.keys(TEMPLATES).join(', ')})` }
   }
   let resolved
   try {
     resolved = resolveTemplate(profile, { fs, root })
   } catch (e) {
-    return { ok: false, error: `template resolution failed: ${e.message}` }
+    return { ok: false, code: 'E_TEMPLATE_RESOLUTION', slot: profile, error: `template resolution failed: ${e.message}` }
   }
-  if (resolved.size === 0) return { ok: false, error: `profile "${profile}" resolved to no files - the scaffold is missing templates/${profile}/` }
+  if (resolved.size === 0) return { ok: false, code: 'E_TEMPLATE_EMPTY', slot: profile, error: `profile "${profile}" resolved to no files - the scaffold is missing templates/${profile}/` }
 
   fs.mkdirSync(dir, { recursive: true })
   // Coexistence: on a re-stamp, a template path whose on-disk bytes no longer

@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "description": "monoforge's refusal-code registry, in the govstruct spec/refusals.json shape (the G10 model): one namespaced vocabulary so a refusal one tool emits is a refusal the next tool can read. The harness refuses to emit a code it has not registered here, and test/harness.test.mjs holds that law. Codes are namespaced by tool; monoforge's namespace is `monoforge`.",
+  "namespaces": {
+    "monoforge": {
+      "E_BIN_PATH": "a package.json bin entry does not exist in the tree",
+      "E_CANON_PIN": "the .eyes canon manifest carries no pin block, or a pin is missing or still UNSET",
+      "E_CONFIG_INVALID": "factory.json is not valid JSON",
+      "E_CONFIG_MISSING": "factory.json is absent (the stamp needs a config)",
+      "E_DANGLING_CANON": "a .eyes canon ledger row points at a file that does not exist, escapes the canon home, or the ledger is corrupt",
+      "E_DASH_LAW": "an em or en dash appears in md prose (the house law is none, ever)",
+      "E_DOCS_GATE": "a docs gate script failed over the tree",
+      "E_EXPORTS_PATH": "a package.json exports entry does not exist in the tree",
+      "E_FIELD_MISSING": "a required factory.json key is missing or empty",
+      "E_FILES_PATH": "a package.json files entry does not exist in the tree",
+      "E_GRANT_INVALID": "the grant context is malformed (kind and scope must be non-empty strings)",
+      "E_IDENTITY_DRIFT": "a re-stamp targets a tree stamped under a different name",
+      "E_ID_FORMAT": "factory.json name is not kebab-case",
+      "E_LOCK_REFUSED": "lock refused because the doctor reported at least one failure",
+      "E_NPM_TEST": "npm test failed over the tree",
+      "E_PACKAGE_JSON": "package.json is not valid JSON",
+      "E_PROFILE_UNKNOWN": "factory.json profile is not a known profile",
+      "E_PUBLISH_GATE": "publish.yml does not refuse 0.x refs (the OIDC ladder gate)",
+      "E_PUBLISH_TOKEN": "publish.yml references a publish token (the law is OIDC only)",
+      "E_SITE_DOMAIN": "factory.json siteDomain is not an absolute https URL",
+      "E_STAMP_MANIFEST": ".monoforge-stamp.json is present but unparseable",
+      "E_STAMP_TOKEN": "a raw __TOKEN__ survived the stamp (the stamp never finished)",
+      "E_STRAY_DIR": "the stamp target is a non-empty directory that is not a re-stamp",
+      "E_TEMPLATE_EMPTY": "a profile resolved to no files (the scaffold is missing its template dir)",
+      "E_TEMPLATE_RESOLUTION": "template chain resolution failed (a cycle, or a missing chained profile)",
+      "E_TRUTH_SLOT": "a FORGE-TODO truth slot is still unfilled (a shipped placeholder is a shipped lie)",
+      "E_VERB_UNKNOWN": "the harness was asked for a verb it does not drive"
+    }
+  }
+}
