@@ -122,3 +122,20 @@ The member `flowforge` is renamed **coreforge** (govstruct PRD 16.5). The rig is
 - **Frozen receipts kept as written:** `flowforge#N` issue citations, the `dhaupin/flowforge @ <sha>` extraction receipts in `MANIFEST.md`, and `labs/` history. A citation is a receipt of what happened, not a live reference.
 - **Receipts:** `npm test` green; `npm run lint:docs` all gates clean; `npm run lint:pins` PASS (13 refs, all SHA-pinned).
 - **No version bump**; a reference sweep, not a released surface.
+
+---
+
+### 2026-11-04 - session: the docs-lane consolidation (this repo now calls THE one lane)
+
+The family carried four docs topologies - freestruct's `docs-lane.yml`, coreforge's forked `docs-build.yml`, govstruct's copy of that fork, and five inline hand-copies - and the two reusable lanes had already drifted (ruby 3.2 vs 3.4, pagefind `latest` scrape vs npm pin). Owner call: consolidate to ONE lane, `dhaupin/freestruct`'s `docs-lane.yml`, no drift.
+
+- `.github/workflows/docs.yml` - now a THIN caller of `dhaupin/freestruct/.github/workflows/docs-lane.yml@22bb7e9b2634d6cdd966963d9e25c7f892577276`. The runbook (Jekyll, the hardened pagefind scrape, the pinned freestruct post-build layer, the optional crashtest dogfood campaign, the Pages upload, the main-gated deploy) lives once in the lane; this file keeps only the trigger, permissions, concurrency, and this repo's input pins.
+- ruby 3.3 (the Gemfile lock). No `crashtest.config.js`, so the lane's opt-in dogfood leg stays off. The factory's own battery (`npm run check`) is unchanged.
+- **Receipts:** the caller parses; `uses:` resolves to the lane at the pinned SHA; no local `docs-build.yml` remains.
+- **No version bump**; a workflow consolidation, not a released surface.
+
+- **The template ships the thin caller (same pass).** `templates/monoforge-headless/.github/workflows/docs.yml` was still the pre-consolidation inline runbook (stale pagefind `latest` scrape, `npx freestruct@1.1.0`, floating `@v4`/`@v3` pins) - the drift every stamped repo would have inherited. It is now a thin caller of the same lane. Every action ref in the headless battery (`docs.yml`, `publish.yml`, `test.yml`) is SHA-pinned. `test/templates.test.cjs` gains a template-tree pin check with a planted-float fixture (the family pin guard scans root `.github/workflows` only, so the template needed its own teeth).
+- **Receipts:** `npm test` 74/74 + the pin battery 8/8; `npm run check` green (pins 8 refs / 4 workflows, docs, language, forge-shapes).
+
+
+- **The pin guard now scans `action.yml` (2026-11-04 sweep).** The family pin guard (`scripts/check-action-pins.cjs`) scanned only `.github/workflows/`, so a floating `uses:` in a repo-root composite Action manifest went unseen. crashtest's `action.yml` (the gate other repos add) carried `actions/setup-node@v6` and `actions/upload-artifact@v6` plus a duplicated `default:` key; both are now pinned and the key is gone. The guard scans the manifest alongside the workflows, and its battery proves the new leg bites. Sweep finding; no version bump.

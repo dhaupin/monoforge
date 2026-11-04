@@ -78,3 +78,41 @@ test('an unknown profile refuses by name (never a silent empty stamp)', async ()
   const { resolveChain } = await load()
   assert.throws(() => resolveChain('nope'), /unknown template profile/)
 })
+
+// The template layer ships workflows a stamp copies into a NEW repo, so a
+// floating action ref here would seed the whole fleet with floats. The family
+// pin guard scans root .github/workflows only (a byte-identical copy in every
+// sibling), so the template tree needs its own teeth.
+function floatingRefsIn(dir) {
+  const out = []
+  if (!fs.existsSync(dir)) return out
+  for (const f of fs.readdirSync(dir).filter((n) => n.endsWith('.yml') || n.endsWith('.yaml'))) {
+    const body = fs.readFileSync(path.join(dir, f), 'utf8')
+    for (const line of body.split('\n')) {
+      const m = line.match(/^\s*-?\s*uses:\s*(\S+)/)
+      if (!m) continue
+      const ref = m[1]
+      if (ref.startsWith('./') || ref.startsWith('docker://')) continue
+      const at = ref.lastIndexOf('@')
+      const pin = at === -1 ? '' : ref.slice(at + 1)
+      if (!/^[0-9a-f]{40}$/.test(pin)) out.push(`${f}: ${ref}`)
+    }
+  }
+  return out
+}
+
+test('every template workflow action is SHA-pinned (a stamp never seeds a float)', () => {
+  const dir = path.join(root, 'templates', 'monoforge-headless', '.github', 'workflows')
+  assert.deepEqual(floatingRefsIn(dir), [], 'template workflow carries a floating action ref')
+})
+
+test('the template pin check bites both ways (a planted float is caught)', () => {
+  const dir = path.join(root, 'templates', 'monoforge-headless', '.github', 'workflows')
+  const planted = path.join(dir, 'zz-float-probe.yml')
+  fs.writeFileSync(planted, 'jobs:\n  x:\n    steps:\n      - uses: actions/checkout@v4\n')
+  try {
+    assert.deepEqual(floatingRefsIn(dir), ['zz-float-probe.yml: actions/checkout@v4'])
+  } finally {
+    fs.rmSync(planted, { force: true })
+  }
+})

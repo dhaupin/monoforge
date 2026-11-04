@@ -1,3 +1,14 @@
+# docs - a THIN caller of THE one docs lane (dhaupin/freestruct).
+#
+# The runbook (Jekyll, the hardened pagefind scrape, the pinned freestruct
+# post-build layer, the optional crashtest dogfood campaign, the Pages upload,
+# the main-gated deploy) lives ONCE in the lane. This file keeps only what is
+# per-repo: the trigger, the permissions, and the concurrency group. The lane
+# defaults (ruby 3.4, node 22, freestruct 1.2.0 EXACT, --strict) fit a repo
+# that brings its own docs tree; pass `with:` inputs to override them.
+#
+# The docs truth gates (npm run lint:docs) run in test.yml, not here: a
+# workflow_call caller cannot carry extra steps, so they stay in the battery.
 name: docs
 
 on:
@@ -18,85 +29,7 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-node@v4
-        with: { node-version: 20 }
-
-      # Docs truth gates (ported house checkers): frontmatter 5-field law,
-      # resolvable links, style law (no dashes in prose, language-tagged
-      # fences, no trailing ws), fiction-signature seeds, the two-argument
-      # Liquid filter trap, English-only prose.
-      - name: Docs gates
-        run: |
-          node scripts/check-docs-frontmatter.cjs
-          node scripts/check-docs-links.cjs
-          node scripts/check-docs-style.cjs
-          node scripts/check-fiction-signatures.cjs
-          node scripts/check-jekyll-filters.cjs
-          node scripts/check-language.cjs
-
-      - name: Setup Ruby
-        uses: ruby/setup-ruby@v1
-        with:
-          ruby-version: '3.3'
-          bundler-cache: true
-          cache-version: 1
-
-      - name: Setup Pages
-        id: pages
-        uses: actions/configure-pages@v4
-
-      - name: Install deps
-        working-directory: docs
-        run: bundle install
-
-      # House-measured: the pagefind npm package resolves a platform binary at
-      # install and an npx fallback DIED in CI ("Failed to install either of
-      # [pagefind_extended, pagefind]" - dhaupin/freestruct docs.yml note).
-      # The standalone musl tarball is the proven path (prestruct docs.yml).
-      - name: Download Pagefind
-        working-directory: docs
-        run: |
-          VERSION=$(curl -sL "https://api.github.com/repos/Pagefind/pagefind/releases/latest" | grep '"tag_name"' | sed 's/.*"v\([^\"]*\)".*/\1/')
-          curl -sL "https://github.com/Pagefind/pagefind/releases/download/v${VERSION}/pagefind-v${VERSION}-x86_64-unknown-linux-musl.tar.gz" -o pagefind.tar.gz
-          tar -xzf pagefind.tar.gz
-          rm pagefind.tar.gz
-
-      - name: Jekyll build
-        working-directory: docs
-        run: bundle exec jekyll build
-
-      # freestruct AFTER jekyll (post-render SEO layer; discovers
-      # docs/freestruct.config.yml + docs/_site by the engine's own rule) --
-      # --strict: broken links fail the build.
-      - name: Freestruct (strict)
-        run: npx --yes freestruct@1.1.0 --strict
-
-      # Pagefind LAST - index over the FINAL html (freestruct-injected)
-      - name: Index search with Pagefind
-        working-directory: docs
-        run: ./pagefind --site _site
-
-      - name: Upload artifact
-        id: upload-artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: 'docs/_site'
-
-  deploy:
-    needs: build
-    # The integration branch is in the trigger list, so the trigger no longer
-    # keeps staging's docs out of production - this guard does (flowforge#30,
-    # point 3: the trap). Only a promotion to main deploys.
-    if: github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - id: deployment
-        uses: actions/deploy-pages@v4
+  docs:
+    # Pinned to the lane's SHA (pins, never floats): a moving @main would let
+    # the runbook change under us between runs.
+    uses: dhaupin/freestruct/.github/workflows/docs-lane.yml@22bb7e9b2634d6cdd966963d9e25c7f892577276 # main
