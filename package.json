@@ -20,13 +20,14 @@
     "packs/"
   ],
   "scripts": {
-    "test": "node test/run.mjs && node test/version-truth.mjs && node test/distribution-run.mjs && node --test test/templates.test.cjs test/workers-compat.test.mjs test/harness.test.mjs test/packs.test.mjs test/ship-from-download.test.cjs test/release-verify.test.cjs test/docs-frontmatter.test.cjs test/web-imports.test.cjs test/status.test.mjs",
+    "test": "node test/run.mjs && node test/version-truth.mjs && node test/distribution-run.mjs && node --test test/templates.test.cjs test/workers-compat.test.mjs test/harness.test.mjs test/packs.test.mjs test/ship-from-download.test.cjs test/release-verify.test.cjs test/docs-frontmatter.test.cjs test/web-imports.test.cjs test/status.test.mjs && node --test test/check-action-pins.test.cjs",
     "lint:packs": "node bin/forge.mjs lint-packs --deep",
+    "lint:pins": "node scripts/check-action-pins.cjs",
     "conform:packs": "packstruct audit-conformance . --loader \"node src/packs.mjs {packs}\"",
     "packs": "node scripts/run-packs.mjs",
     "lint:docs": "node scripts/check-docs-frontmatter.cjs && node scripts/check-docs-links.cjs && node scripts/check-docs-style.cjs && node scripts/check-fiction-signatures.cjs && node scripts/check-jekyll-filters.cjs",
     "lint:language": "node scripts/check-language.cjs",
-    "check": "npm test && npm run lint:docs && npm run lint:language && npm run lint:packs && npm run conform:packs && npm run packs",
+    "check": "npm test && npm run lint:docs && npm run lint:pins && npm run lint:language && npm run lint:packs && npm run conform:packs && npm run packs",
     "prepublishOnly": "npm run check",
     "icons:adopt": "node scripts/adopt-icons.mjs"
   },

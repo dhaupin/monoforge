@@ -106,3 +106,9 @@ Promoted `staging` to `main` (fast-forward - `main` was a strict ancestor, no di
 - **Verified against the served artifact** (not a re-pack): forbidden scan 82 entries / 0 forbidden, served set == `npm pack` of the tree (82 files), exports map held, and the gh ladder's attached asset sha512 == registry integrity. `verify-only` dispatch on `main` (run 41739433518) is green end-to-end.
 - **Fix commit** `18b51fe`, promoted to `staging` and `main` by fast-forward. The `v1.0.0` tag itself still points at the pre-fix commit; the tag-driven run stays red, and the corrected ladder judges the cut via the `verify-only` dispatch (the same shape crashtest's 1.2.0 cut used).
 - **Post-release audit (npm vs GH bytes):** `monoforge-1.0.0.tgz` from npm and from the GH release asset are sha512-identical, and the registry integrity matches. Tarball: 82 files, `/packs` 29 entries (28 public, `forge-shapes`), README + LICENSE + bin + spec + templates present.
+
+## 2026-11-03 - the pin guard goes family-wide (packstruct#69 back-port)
+
+- `scripts/check-action-pins.cjs` (the "pins, never floats" guard) was a packstruct-only artifact (it landed on packstruct's `fix/sha-pin-actions`). It is now copied byte-identical into every sibling: `crashtest`, `eyestruct`, `freestruct`, `gistory`, `govstruct`, `monoforge`, `poststruct`, `prestruct` (packstruct already had it).
+- Wired as `npm run lint:pins` inside each repo's publish gate (`check` / `gate` / `prepublishOnly`) and CI, and the guard's own battery (`check-action-pins.test.*`) rides `npm test`.
+- Each repo's workflows were already SHA-pinned, so the guard is now mechanical here too. Receipt: `ACTION PINS: PASS (13 ref(s), all SHA-pinned)`, pin battery 8/8, full battery green.
