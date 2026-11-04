@@ -2,7 +2,7 @@
 
 // The web rig's import-closure gate.
 //
-// monoforge's `web/` landed from the flowforge rig, but its AppLayout.jsx and
+// monoforge's `web/` landed from the coreforge rig, but its AppLayout.jsx and
 // AppIslands.jsx arrived as eyestruct's versions: they imported pages/Packs.jsx,
 // pages/Status.jsx, and two island components that were never copied. Rollup
 // cannot resolve a missing module, so `prestruct build` died at the first

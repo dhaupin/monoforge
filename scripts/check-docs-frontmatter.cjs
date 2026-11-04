@@ -25,7 +25,7 @@
 const fs = require('fs');
 const path = require('path');
 // --root <dir> checks a tree other than this one (tests + adopters),
-// the family gate convention (flowforge lib/root.cjs).
+// the family gate convention (coreforge lib/root.cjs).
 const rootArg = process.argv.indexOf('--root');
 const ROOT = rootArg !== -1 ? path.resolve(process.argv[rootArg + 1]) : path.resolve(__dirname, '..');
 const DOCS = path.join(ROOT, 'docs');
