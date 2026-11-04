@@ -1,9 +1,6 @@
 # monoforge MANIFEST - the receipts
 
-Every file here is either extracted from the factory's own 0.9.0 lock
-archive (the tarball-first ferry), copied from the flowforge rig (see the
-rig's MANIFEST for its own extraction receipts), or written new for this
-mount pass. Row-per-file provenance, so rig bumps are deliberate reviews.
+Every file here is either extracted from the factory's own 0.9.0 lock archive (the tarball-first ferry), copied from the flowforge rig (see the rig's MANIFEST for its own extraction receipts), or written new for this mount pass. Row-per-file provenance, so rig bumps are deliberate reviews.
 
 ## From the 0.9.0 lock archive (upstream lineage f8e45fb)
 

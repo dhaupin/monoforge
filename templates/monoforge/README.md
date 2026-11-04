@@ -4,8 +4,7 @@ __PITCH__.
 
 ## What this shipping skeleton provides
 
-(forge leaves this section to the author; it must describe what the tool
-actually does. Replace this slot before the first push. FORGE-TODO:truth)
+(forge leaves this section to the author; it must describe what the tool actually does. Replace this slot before the first push. FORGE-TODO:truth)
 
 ## Status
 

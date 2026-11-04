@@ -10,140 +10,46 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 
-- **The expected-set probe no longer parses `npm pack --dry-run --json`.** The
-  phone's npm answers that probe with empty stdout even under `--loglevel=error`,
-  so the ladder's `JSON.parse` failed and read as a capability failure on a clean
-  tree (the `always-auth` warning was a red herring on stderr). The ladder now
-  derives the expected set from a REAL `npm pack` of the checkout, listed by the
-  same `tarList` the served tarball already goes through - the code path the
-  forbidden scan proved works on the phone.
+- **The expected-set probe no longer parses `npm pack --dry-run --json`.** The phone's npm answers that probe with empty stdout even under `--loglevel=error`, so the ladder's `JSON.parse` failed and read as a capability failure on a clean tree (the `always-auth` warning was a red herring on stderr). The ladder now derives the expected set from a REAL `npm pack` of the checkout, listed by the same `tarList` the served tarball already goes through - the code path the forbidden scan proved works on the phone.
 
-- **The staged publish `.npmrc` no longer writes the deprecated `always-auth`
-  line.** npm >=9 warns `Unknown project config "always-auth"` on it, and that
-  warning reaches the child processes the `prepublishOnly` gate spawns. The
-  staged file is now exactly one line (the `${NPM_TOKEN}` expansion).
+- **The staged publish `.npmrc` no longer writes the deprecated `always-auth` line.** npm >=9 warns `Unknown project config "always-auth"` on it, and that warning reaches the child processes the `prepublishOnly` gate spawns. The staged file is now exactly one line (the `${NPM_TOKEN}` expansion).
 
 ### Added
 
-- **The packs loader and the two pack lanes (monoforge#3).** `src/packs.mjs` is
-  the packstruct SPEC v1 loader, graded by the spec's own harness (`packstruct
-  audit-conformance . --loader "node src/packs.mjs {packs}"` honors it 8/8).
-  Every section-5 violation refuses instantly, in one line, naming the pack:
-  wrong `schemaVersion`, non-kebab name, name/dir mismatch, missing entry,
-  empty description, bad version, and a cross-pack collision. A new
-  `monoforge packs [dir]` verb runs the check-profile packs over a tree (fails
-  on a new `EXPLOITED`), and `monoforge loader <dir>` is the bare loader. The
-  factory's first pack, `packs/public/forge-shapes`, carries six pure-reading
-  checks over a stamped tree (receipt present, receipted files exist, no
-  `FORGE-TODO`, no raw `__TOKEN__`, package paths resolve, publish gate
-  refuses 0.x) with `test/fixtures/` proving every verdict both ways.
-  `package.json` gains the family lanes `lint:packs` (`packstruct lint packs
-  --deep`), `conform:packs`, and `packs`, all three chained into `check`.
+- **The packs loader and the two pack lanes (monoforge#3).** `src/packs.mjs` is the packstruct SPEC v1 loader, graded by the spec's own harness (`packstruct audit-conformance . --loader "node src/packs.mjs {packs}"` honors it 8/8). Every section-5 violation refuses instantly, in one line, naming the pack: wrong `schemaVersion`, non-kebab name, name/dir mismatch, missing entry, empty description, bad version, and a cross-pack collision. A new `monoforge packs [dir]` verb runs the check-profile packs over a tree (fails on a new `EXPLOITED`), and `monoforge loader <dir>` is the bare loader. The factory's first pack, `packs/public/forge-shapes`, carries six pure-reading checks over a stamped tree (receipt present, receipted files exist, no `FORGE-TODO`, no raw `__TOKEN__`, package paths resolve, publish gate refuses 0.x) with `test/fixtures/` proving every verdict both ways. `package.json` gains the family lanes `lint:packs` (`packstruct lint packs --deep`), `conform:packs`, and `packs`, all three chained into `check`.
 
-- **A headless stamp harness with typed refusals (monoforge#23).** `monoforge
-  harness <verb> <dir>` (module: `runHarness` / `run` from `monoforge`) drives
-  `new`, `doctor`, and `lock` in-process and returns one structured result,
-  `{ verb, ok, verdicts, refusals, grant, receipt }`, so railyard's door can run
-  the stamp loop without a shell and read verdicts instead of prose. Every
-  refusal is `{ code, slot, detail }` and every code is registered in the new
-  `spec/refusals.json` (the shared govstruct vocabulary, G10); the harness
-  refuses to emit a code it has not registered, so a typo cannot become a logged
-  refusal. The doctor's fails now carry their code and slot (`E_TRUTH_SLOT`
-  naming the slot, `E_BIN_PATH` naming the entry, and so on), the stamp and lock
-  refusals are coded too, and an optional `--grant kind:scope` is echoed back
-  (kind, scope, `spent: true`) for the caller's audit ledger (G5/G14) without
-  the forge ever seeing the credential. In-process only, no sockets.
+- **A headless stamp harness with typed refusals (monoforge#23).** `monoforge harness <verb> <dir>` (module: `runHarness` / `run` from `monoforge`) drives `new`, `doctor`, and `lock` in-process and returns one structured result, `{ verb, ok, verdicts, refusals, grant, receipt }`, so railyard's door can run the stamp loop without a shell and read verdicts instead of prose. Every refusal is `{ code, slot, detail }` and every code is registered in the new `spec/refusals.json` (the shared govstruct vocabulary, G10); the harness refuses to emit a code it has not registered, so a typo cannot become a logged refusal. The doctor's fails now carry their code and slot (`E_TRUTH_SLOT` naming the slot, `E_BIN_PATH` naming the entry, and so on), the stamp and lock refusals are coded too, and an optional `--grant kind:scope` is echoed back (kind, scope, `spent: true`) for the caller's audit ledger (G5/G14) without the forge ever seeing the credential. In-process only, no sockets.
 
-- **A re-stamp no longer clobbers a stamped repo's host-authored artifacts
-  (monoforge#4).** `stamp` records the sha256 of every file it emits in the
-  receipt's new `hashes` map. Re-running `monoforge new` over a tree carrying
-  our receipt now overlays only the paths still matching the factory's last
-  emission; a template path the host has edited since - a `crashtest.config.js`,
-  an `AGENTS.md` house-rules edit, a CI lane - is **skipped by name** (reported
-  in the result's `skipped` list) and left byte-for-byte intact. The receipt's
-  `files` array keeps the doctor's truth-slot scope, and a skipped path keeps
-  the factory's last emission hash so it stays host-owned across every future
-  re-stamp. The old "non-empty dir refused" law is unchanged for a directory
-  that is not ours; a name mismatch on our own receipt is refused too.
+- **A re-stamp no longer clobbers a stamped repo's host-authored artifacts (monoforge#4).** `stamp` records the sha256 of every file it emits in the receipt's new `hashes` map. Re-running `monoforge new` over a tree carrying our receipt now overlays only the paths still matching the factory's last emission; a template path the host has edited since - a `crashtest.config.js`, an `AGENTS.md` house-rules edit, a CI lane - is **skipped by name** (reported in the result's `skipped` list) and left byte-for-byte intact. The receipt's `files` array keeps the doctor's truth-slot scope, and a skipped path keeps the factory's last emission hash so it stays host-owned across every future re-stamp. The old "non-empty dir refused" law is unchanged for a directory that is not ours; a name mismatch on our own receipt is refused too.
 
 ### Changed
 
-- **Changelog + release-notes standardized to the family shape.** `CHANGELOG.md`
-  is now Keep-a-Changelog end to end (a `## [Unreleased]` block over
-  `## [version] - date` sections) and `scripts/release-notes.cjs` is the
-  family's single superset extractor: it reads the KAC heading, still reads the
-  older bare (`## 1.2.0`) and v-prefixed (`## v1.2.0`) forms, closes the
-  version token so `## [1.2.0]` never matches a `## [1.2.0-rc.1]`, and refuses
-  a version with no section by name. One extractor across the family means one
-  release-body shape everywhere.
+- **Changelog + release-notes standardized to the family shape.** `CHANGELOG.md` is now Keep-a-Changelog end to end (a `## [Unreleased]` block over `## [version] - date` sections) and `scripts/release-notes.cjs` is the family's single superset extractor: it reads the KAC heading, still reads the older bare (`## 1.2.0`) and v-prefixed (`## v1.2.0`) forms, closes the version token so `## [1.2.0]` never matches a `## [1.2.0-rc.1]`, and refuses a version with no section by name. One extractor across the family means one release-body shape everywhere.
 
 ### Fixed
 
-- **The release ladder no longer races registry propagation, nor false-flags a
-  branch-name `target_commitish`** - both surfaced by the crashtest 1.2.0 live
-  cut. `scripts/verify-release.cjs` polls `dist-tags.latest` **and** the version
-  entry through npm's post-publish propagation window instead of reading once
-  (the first read saw the old `latest`), and the `release` job retries
-  `npm pack <pkg>@<ver>` the same way (it read `ETARGET: no matching version`
-  seconds after publish). The release check now accepts GitHub's
-  `target_commitish` default-branch name and treats only a 40-hex SHA as a
-  commit claim (a branch name is not drift; the tag is the identity). Two pins
-  in the release-verify leg hold both fixes.
+- **The release ladder no longer races registry propagation, nor false-flags a branch-name `target_commitish`** - both surfaced by the crashtest 1.2.0 live cut. `scripts/verify-release.cjs` polls `dist-tags.latest` **and** the version entry through npm's post-publish propagation window instead of reading once (the first read saw the old `latest`), and the `release` job retries `npm pack <pkg>@<ver>` the same way (it read `ETARGET: no matching version` seconds after publish). The release check now accepts GitHub's `target_commitish` default-branch name and treats only a 40-hex SHA as a commit claim (a branch name is not drift; the tag is the identity). Two pins in the release-verify leg hold both fixes.
 
 ### Changed
-- The `release` job now attaches the **served** tarball (`npm pack
-  monoforge@<version>`) to the GH release, and the `verify` job asserts its
-  sha512 equals the registry integrity metadata
-  (`scripts/verify-release.cjs --gh --asset`). The GH release and the npm
-  artifact are the same bytes, so a consumer downloads one artifact either
-  way. `scripts/verify-release.cjs` moves to the family copy that carries the
-  `--asset` leg.
-- **Docs no longer describe a gistory mount/ferry (monoforge#36).** gistory
-  retired its forge role 2026-11-02 (dhaupin/gistory#37): the staging mounts,
-  the registry, and the ferry workflows are gone, and the factory role moved
-  to **railyard**. `docs/ci.md` and `docs/playbooks.md` now mark the
-  mount-side ferry retired and keep the four receipts as the local smoke test;
-  the battery section (gistory#14 spec) is unchanged - it is monoforge's own
-  `test.yml` now.
+- The `release` job now attaches the **served** tarball (`npm pack monoforge@<version>`) to the GH release, and the `verify` job asserts its sha512 equals the registry integrity metadata (`scripts/verify-release.cjs --gh --asset`). The GH release and the npm artifact are the same bytes, so a consumer downloads one artifact either way. `scripts/verify-release.cjs` moves to the family copy that carries the `--asset` leg.
+- **Docs no longer describe a gistory mount/ferry (monoforge#36).** gistory retired its forge role 2026-11-02 (dhaupin/gistory#37): the staging mounts, the registry, and the ferry workflows are gone, and the factory role moved to **railyard**. `docs/ci.md` and `docs/playbooks.md` now mark the mount-side ferry retired and keep the four receipts as the local smoke test; the battery section (gistory#14 spec) is unchanged - it is monoforge's own `test.yml` now.
 
 ### Fixed
-- **The walk-exit rule now rides the template AGENTS.md, so a stamped repo
-  inherits it (gistory#24).** The rule (a manual walk is not done until
-  nothing it found is uncommissioned) was in the repo AGENTS.md and the
-  template DEPLOY.md, but the template AGENTS.md - the file a stamped repo
-  actually gets - did not carry it, so DEPLOY.md's "the walk-exit rule in
-  AGENTS.md" pointed at nothing in a fresh tree. The template AGENTS.md now
-  carries the rule with the eyestruct@70dfbea worked example, matching the
-  repo copy.
+- **The walk-exit rule now rides the template AGENTS.md, so a stamped repo inherits it (gistory#24).** The rule (a manual walk is not done until nothing it found is uncommissioned) was in the repo AGENTS.md and the template DEPLOY.md, but the template AGENTS.md - the file a stamped repo actually gets - did not carry it, so DEPLOY.md's "the walk-exit rule in AGENTS.md" pointed at nothing in a fresh tree. The template AGENTS.md now carries the rule with the eyestruct@70dfbea worked example, matching the repo copy.
 
 ### Added
 - **The storage seam: the stamp engine runs from a worker, or from memory (monoforge#27).** `stamp` now takes a storage adapter (`{ fs }`), so the same truth machinery runs where `node:fs` does not exist. `nodeFsAdapter` (real `node:fs`) stays the default under Node, so the CLI is unchanged; `memoryFs(seed)` runs a whole stamp - config read, template walk, token fill, `gitignore.tmpl` rename, manifest write - with no disk. The engine core imports no `node:*` at all (path helpers moved to `src/paths.mjs`), and the new `monoforge/workers` export is the workerd-safe surface (`stamp` + adapters; no `doctor`/`lock`, which shell out to git). The `/api/stamp-canary` Pages Function is the living proof: it stamps an in-memory template tree at the edge and reports what the engine produced, and `test/workers-compat.test.mjs` runs it under Node with `WebSocketPair` defined, exactly as workerd would. This is the upstream seam that retires the coreforge rig's vendored engine fork. The bundle/Function test lanes need the esbuild toolchain, so they are a NAMED skip in the root battery and covered by the Cloudflare Pages build; an always-on source-graph walk proves the no-`node:*` claim without it.
 - **The trifecta audit, folded into the release runbook (monoforge#10).** `DEPLOY.md` (and its `templates/monoforge/` twin, so a stamped repo inherits it) now carries the four-artifact walk the family runs before a tag: README usage vs the real dispatch, AGENTS.md's lane/receipt inventory, the deploy-lane env against README/DEPLOY claims, and CHANGELOG keep-a-changelog discipline. The walk-exit rule applies: every catch commissions in the same session.
 - The two template doc gates the repo ran but the headless profile did not: `templates/monoforge/scripts/check-fiction-signatures.cjs` and `check-jekyll-filters.cjs`, wired into `templates/monoforge-headless/.github/workflows/docs.yml`, so a stamped repo's docs lane runs all six gates, not four.
 
-
-- the Terms + Privacy pages carry a footer crosslink naming the sibling sites
-  that ship the same plain-language legal form (crashtest, eyestruct,
-  poststruct, packstruct), so the family parity is visible to a reader who
-  arrives from any member (crashtest#45, the family tracking issue).
+- the Terms + Privacy pages carry a footer crosslink naming the sibling sites that ship the same plain-language legal form (crashtest, eyestruct, poststruct, packstruct), so the family parity is visible to a reader who arrives from any member (crashtest#45, the family tracking issue).
 
 - `src/templates.mjs` - the template registry + chain resolver (the coreforge shape). Profiles live in subdirs (`templates/<profile>/`) and COMPOSE via a `chain:` list in each profile's `TEMPLATE.md`: `monoforge` chains `monoforge-headless`, so the `.github/` battery lives once in the headless profile and both shapes inherit it - one copy, no drift. Resolution is depth-first, children first, parent wins on a path collision; a cycle or an unknown profile refuses by name. `--list` / `--resolve NAME` for eyeballing and tests.
 - `test/templates.test.cjs` - the resolver both ways: the declared chain, the composed set carries the headless battery once, the manifest never leaks into the payload, a parent wins a path collision, a cycle refuses, an unknown profile refuses. Wired into `npm test`.
 
-- **The why / what / about pages, both surfaces.** The landing gains three
-  routes (`/why`, `/what`, `/about`) in the nav vocabulary and
-  `web/ssr.config.js`, each a real page in the family voice: the copy-and-hope
-  problem and the "generated green is never shipped" thesis; the four factory
-  verbs and the truth battery; who builds it and the MIT provenance. The docs
-  tree grows the matching `docs/why.md`, `docs/what.md`, `docs/about.md`,
-  reachable from the docs nav, and the docs layout gains the shared
-  `.crosslinks` block style. This closes the family-wide gap where no member
-  carried a supporting trio.
+- **The why / what / about pages, both surfaces.** The landing gains three routes (`/why`, `/what`, `/about`) in the nav vocabulary and `web/ssr.config.js`, each a real page in the family voice: the copy-and-hope problem and the "generated green is never shipped" thesis; the four factory verbs and the truth battery; who builds it and the MIT provenance. The docs tree grows the matching `docs/why.md`, `docs/what.md`, `docs/about.md`, reachable from the docs nav, and the docs layout gains the shared `.crosslinks` block style. This closes the family-wide gap where no member carried a supporting trio.
 
-- **The docs legal crosslinks.** The docs footer now links this project's own
-  terms + privacy surfaces (`https://monoforge.creadev.org/terms`, `/privacy`),
-  matching the packstruct docs rig - the landing's terms/privacy were reachable
-  from the header/footer, the docs side had no pointer to them.
+- **The docs legal crosslinks.** The docs footer now links this project's own terms + privacy surfaces (`https://monoforge.creadev.org/terms`, `/privacy`), matching the packstruct docs rig - the landing's terms/privacy were reachable from the header/footer, the docs side had no pointer to them.
 - **The `/packs` surface.** The landing gains a `/packs` route (nav + `web/ssr.config.js` route + sitemap) that reads the extension surface the way eyestruct's does: a hero, the two pack shapes, the "where packs run today" table (packstruct, poststruct, eyestruct, govstruct, crashtest carried; monoforge queued per the rule of three), and the fitting law, crosslinking the family SPEC ([packstruct](https://github.com/dhaupin/packstruct)). The docs `packs.md` page already carried the contract; this is the product-site face.
 - **The family status page (family-status@1).** monoforge now serves the family's shared status contract: `web/scripts/build-status.mjs` generates `web/public/status.json` on every web build from its own truth battery (`src/doctor.mjs`, the same one `monoforge doctor` runs: one `doctor` leg, PASS on a clean battery / RED on any fail) and the template blocks under `templates/*` (14 blocks, 28 files) as the `packs` rows, and a new `/status` route renders the family table live - each sibling's served `/status.json` fetched in the browser, absence shown as absent, never guessed. Same fixed path (`/status.json`), same schema, same dialect as packstruct / poststruct / eyestruct / crashtest / govstruct. The `_headers` CSP `connect-src` now allows the family origins, and `test/status.test.mjs` pins the emitter.
 
@@ -178,7 +84,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 - **The 2026-11-02 trifecta walk's catches.** README's workflow row named "test, publish 0.x refusal, docs" while `staging-ff-sync.yml` also ships (now "test, docs, publish 0.x refusal, staging ff-sync") and called the docs system "4 gates" while six run (now 6); the creadev-lib receipt was misspelled "creedev-lib". `docs/ci.md`'s docs-lane block described a `npx jekyll build` / `npx pagefind --site dist` invocation the workflow never used (it is `bundle exec jekyll build`, `freestruct --strict`, then the standalone-musl `./pagefind --site _site`) and omitted the six gates. The Unreleased section carried duplicate `### Added`/`### Changed` headings; now one heading per type.
-
 
 - Declared workspace deps now key on scoped names (the bare-name form made npm install notarget).
 - Root scripts dir is created before test-all lands; test-all imports node:path (join).

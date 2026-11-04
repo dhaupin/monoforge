@@ -10,6 +10,8 @@ version: '1.0'
 
 One post per release, the conventions adopted across the creadev family: eyestruct's v0.9.0 post set the shape for the struct-family first releases, and monoforge follows it so approaches to the community discussion stay uniform. The post lives in `docs/discussions/` as versioned source so the release trail is in the same tree as the changelog it summarizes, and the file's raw markdown IS the GitHub Discussions announcement - view source on the file, copy, strip the frontmatter, post.
 
+Prose on these pages flows - paragraphs keep their natural length, and nothing in the toolchain re-wraps them at commit time. Hard-wrapped prose is a commit-time artifact, and it dies at every reflow of an upstream forum renderer. Tables and frontmatter keep their own natural line lengths.
+
 ## The conventions
 
 - **One file per release, named after it.** `announcing-vX.Y.Z.md`, matching the npm version on the day the post is drafted. Never reuse a filename; if a release gets a retry, fold the delta into the same post instead.
@@ -24,6 +26,4 @@ One post per release, the conventions adopted across the creadev family: eyestru
 | post | version | live |
 | --- | --- | --- |
 | [Announcing monoforge v0.9.0](./announcing-v0.9.0) | 0.9.0 | yes - the factory's first release line; drops to Discussions when the package lands on the registry |
-| [Announcing monoforge v1.0.0](./announcing-v1.0.0) | 1.0.0 | not yet - draft staged; drops when the v1.0.0 tag ships |
-
-Release-time edits the staged draft accepts: the release URL fills in from the tag, and the npm one-liner moves only if the package slot does.
+| [Announcing monoforge v1.0.0](./announcing-v1.0.0) | 1.0.0 | 2026-11-03 on npm |

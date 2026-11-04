@@ -16,8 +16,7 @@ monoforge lock ./my-tool     # doctor must pass, then archive + checksum
 monoforge cut ./family       # component-family workspace from a living lib
 ```
 
-The release ladder: 0.9.x is manual npm; 1.0.0 flips OIDC trusted publishing
-(publish.yml refuses 0.x versions). See DEPLOY.md in the repo.
+The release ladder: 0.9.x is manual npm; 1.0.0 flips OIDC trusted publishing (publish.yml refuses 0.x versions). See DEPLOY.md in the repo.
 
 <div class="crosslinks">
 <p><strong>More in these docs:</strong>

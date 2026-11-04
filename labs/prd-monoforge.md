@@ -8,9 +8,7 @@ Read order: **"PRD: monoforge (the fleet factory)"** (stamps fleet repos from pr
 
 # PRD: monoforge (the fleet factory)
 
-**Status:** draft v0.1, scaffolded and refusal-tested (v0.1.1: slogan + forge-operator sections added 2026-10-24)
-**Author:** echo (Buffy), 2026-10-24 · Owner: dhaupin · Forge colleague: Rook (ops agent, ruling 2026-10-24)
-**Companion instances (the proven template sources):** [horcrux/prd-poststruct.md](./prd-poststruct.md) · [horcrux/prd-packs.md](./prd-packs.md)
+**Status:** draft v0.1, scaffolded and refusal-tested (v0.1.1: slogan + forge-operator sections added 2026-10-24) **Author:** echo (Buffy), 2026-10-24 · Owner: dhaupin · Forge colleague: Rook (ops agent, ruling 2026-10-24) **Companion instances (the proven template sources):** [horcrux/prd-poststruct.md](./prd-poststruct.md) · [horcrux/prd-packs.md](./prd-packs.md)
 
 ---
 
