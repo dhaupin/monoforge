@@ -1,4 +1,4 @@
-# monoforge 1.0.0
+# monoforge 1.1.0
 
 The struct-family factory: stamp a fleet repo from proven template blocks, doctor it for truth, lock it verifiably.
 

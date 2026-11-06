@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-11-06
+
+The stamp-integrity round since v1.0.0. The factory's `stamp` verb no longer corrupts a stamped file when a factory value carries `$`-form replacement syntax, the docs lane folded into the family's one reusable workflow (and the headless template now stamps the thin caller), and the link check came back on. Every fix is battery-pinned.
+
 ### Fixed
 
 - **A factory value carrying `$`-form replacement syntax no longer corrupts the stamp.** `stamp` filled tokens with `String.prototype.replaceAll(tok, val)`, and a STRING `val` treats `$&`, `` $` ``, and `$'` as replacement patterns. A pitch or description carrying `$&` therefore re-inserted the matched token (`"Save $& now"` stamped `"Save __PITCH__ now"`) and a `` $` `` spliced the preceding text - silently shipping the token back into every stamped file, and the doctor's truth-slot check could not see it (the token WAS gone from the source, re-created at replace time). The free-text slots (`species`, `pitch`, `description`) are unvalidated, so this is reachable from any authored `factory.json`. Replacement now uses a FUNCTION replacer (`() => val`), so the value lands verbatim - the never-corrupt rule the hook layer (`prestruct` `example/scripts/hooks.js`) already enforces, and the shape `coreforge` `bin/coreforge.mjs` already uses (`out.split(tok).join(val)`, which does not read `$`). `test/run.mjs` pins the law (`$&`, `` $` ``, `$'` land verbatim; the token is never re-inserted) and it bites both ways.
