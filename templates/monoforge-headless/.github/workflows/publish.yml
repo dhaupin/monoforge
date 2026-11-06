@@ -110,11 +110,13 @@ jobs:
             gh release create "$BLOCK_TAG" --title "__NAME__ $BLOCK_VERSION" --notes-file "$RUNNER_TEMP/notes.md"
           fi
 
-  # The verify leg runs after a real cut, but ALSO stands alone in
-  # verify-only mode (publish skipped, release skipped, the ladder judged
-  # against what is already served and released).
+  # The verify leg judges what the registry and GitHub actually serve, so it
+  # waits for release to cut the object and attach the tarball (a bare
+  # `needs: publish` let verify race release and red-flag a cut that landed).
+  # It ALSO stands alone in verify-only mode (publish skipped, release
+  # skipped, the ladder judged against what is already served and released).
   verify:
-    needs: publish
+    needs: [publish, release]
     if: >-
       always() &&
       (needs.publish.result == 'success' ||
