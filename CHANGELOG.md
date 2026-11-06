@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Changed
+
+- **Family devDependency pins advance to the current cuts, and the conformance count moves with packstruct 1.1.0.** `eyestruct` `1.0.0 -> 1.1.0`, `packstruct` `1.0.0 -> 1.1.0`, `crashtest` `1.1.0 -> 1.3.0` (all exact). packstruct 1.1.0 ships a ninth bundled conformance case (`env-claims`, packstruct#71), so the SPEC's own harness now honors the loader `9/9` where 1.0.0 honored `8/8` - `test/packs.test.mjs` and the living `docs/verbs.md` + `docs/packs.md` counts move with the pin. The docs-lane caller SHA moves to freestruct v1.3.0 (`7dfb172`) with `freestruct-version` `1.2.0 -> 1.3.0`, and the headless template's docs caller + `build-docs.sh` freestruct pin move with it. Lockfile re-resolved.
+
 ## [1.1.0] - 2026-11-06
 
 The stamp-integrity round since v1.0.0. The factory's `stamp` verb no longer corrupts a stamped file when a factory value carries `$`-form replacement syntax, the docs lane folded into the family's one reusable workflow (and the headless template now stamps the thin caller), and the link check came back on. Every fix is battery-pinned.
