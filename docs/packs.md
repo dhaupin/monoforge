@@ -30,7 +30,7 @@ Packs are **opt-in by construction**. A pack applies when the host's own config 
 npx packstruct audit-conformance . --loader "node src/packs.mjs {packs}"
 ```
 
-It honors all 8/8 conformance cases. Every SPEC section-5 violation refuses instantly, one line, naming the pack - a wrong `schemaVersion`, a non-kebab name, a name/dir mismatch, a missing entry, an empty description, a bad version, or a cross-pack collision. Exit 0 clean / 1 violations / 2 usage.
+It honors all 9/9 conformance cases. Every SPEC section-5 violation refuses instantly, one line, naming the pack - a wrong `schemaVersion`, a non-kebab name, a name/dir mismatch, a missing entry, an empty description, a bad version, or a cross-pack collision. Exit 0 clean / 1 violations / 2 usage.
 
 Three family lanes ride `npm run check`:
 
