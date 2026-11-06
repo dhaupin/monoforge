@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Fixed
+
+- **A factory value carrying `$`-form replacement syntax no longer corrupts the stamp.** `stamp` filled tokens with `String.prototype.replaceAll(tok, val)`, and a STRING `val` treats `$&`, `` $` ``, and `$'` as replacement patterns. A pitch or description carrying `$&` therefore re-inserted the matched token (`"Save $& now"` stamped `"Save __PITCH__ now"`) and a `` $` `` spliced the preceding text - silently shipping the token back into every stamped file, and the doctor's truth-slot check could not see it (the token WAS gone from the source, re-created at replace time). The free-text slots (`species`, `pitch`, `description`) are unvalidated, so this is reachable from any authored `factory.json`. Replacement now uses a FUNCTION replacer (`() => val`), so the value lands verbatim - the never-corrupt rule the hook layer (`prestruct` `example/scripts/hooks.js`) already enforces, and the shape `coreforge` `bin/coreforge.mjs` already uses (`out.split(tok).join(val)`, which does not read `$`). `test/run.mjs` pins the law (`$&`, `` $` ``, `$'` land verbatim; the token is never re-inserted) and it bites both ways.
+
 ### The link check comes back on (2026-11-04)
 
 `docs/freestruct.config.yml` carried `linkCheck: false` - a workaround parked under freestruct 1.1.0, whose strict link checker had no `basePath` awareness and so false-failed every baseurl'd site on its own nav (dhaupin/freestruct#32). The comment said exactly when to lift it: "when #32 ships in a pinned release." The family now pins freestruct **1.2.0**, which carries the basePath-aware strip, so the workaround is retired and the default strict link gate is back on - broken internal links fail the build again.

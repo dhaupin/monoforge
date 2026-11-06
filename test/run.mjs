@@ -153,9 +153,31 @@ assert(rf(join(d8, 'README.md'), 'utf8') === 'host scribble\n', 're-stamp: once 
 assert(r8d.skipped.includes('README.md'), 're-stamp: the host-edited template file is a named skip')
 rmSync(d8, { recursive: true, force: true })
 
+// 9. the token-replacement never-corrupt law: a config value carrying $-form
+//    replacement syntax ($&, $', $`) must land VERBATIM. With a string-form
+//    replacer, `$&` re-inserts the matched token - so a pitch "Save $& now"
+//    stamps "Save __PITCH__ now", silently shipping the token back into every
+//    file. Function replacers make the value literal; this pins it.
+const d9 = mkdtempSync(join(tmpdir(), 'forge-dollar-'))
+writeFileSync(join(d9, 'factory.json'), JSON.stringify({
+  name: 'dollar-forge',
+  species: 'test animal',
+  pitch: 'Save $& now, get $` and $\' too.',
+  description: 'A pitch carrying dollar replacement syntax must land verbatim, never re-inserting its own token.',
+  siteDomain: 'https://dollar-forge.creadev.org',
+  version: '0.9.0',
+}))
+const r9 = await stamp(d9)
+assert(r9.ok === true, 'dollar-value stamp should succeed')
+const readme9 = rf(join(d9, 'README.md'), 'utf8')
+assert(readme9.includes('Save $& now'), 'a $& in a config value lands verbatim (string-form replaceAll would re-insert __PITCH__)')
+assert(!readme9.includes('Save __PITCH__ now'), 'the token is never re-inserted by $-form replacement syntax')
+assert(readme9.includes("get $` and $' too"), "the full $` / $' forms land verbatim too")
+rmSync(d9, { recursive: true, force: true })
+
 rmSync(base, { recursive: true, force: true })
 if (fails.length) { console.error('SELF-TEST FAIL:\n  ' + fails.join('\n  ')); process.exit(1) }
-console.log('monoforge self-test: bad-config refused, stray dir refused, stamp ok, unfilled doctor FAIL, refilled doctor PASS, canon dangling/UNSET refused, canon-free silent, publish token refused, re-stamp never clobbers host state - PASS')
+console.log('monoforge self-test: bad-config refused, stray dir refused, stamp ok, unfilled doctor FAIL, refilled doctor PASS, canon dangling/UNSET refused, canon-free silent, publish token refused, re-stamp never clobbers host state, $-form tokens land verbatim - PASS')
 process.exit(0)
 
 function require3(p) { return rf(p, 'utf8') }
