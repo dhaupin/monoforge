@@ -166,7 +166,12 @@ export default async function stamp(dir, opts = {}) {
       if (restamp && !copied.includes(rel) && rel !== 'gitignore.tmpl') continue
       let s = fs.readFileSync(p, 'utf8')
       const before = s
-      for (const [tok, val] of reps) s = s.replaceAll(tok, val)
+      // Function replacers, never string-form: a config value carrying $& or
+      // $' is replacement SYNTAX in string form and would re-insert the token
+      // (or splice the match) instead of the authored text - the never-corrupt
+      // rule the hook layer already enforces. free-text slots (pitch,
+      // description, species) are unvalidated, so this is reachable.
+      for (const [tok, val] of reps) s = s.replaceAll(tok, () => val)
       if (s !== before) { fs.writeFileSync(p, s); filled++ }
       touched.push(rel)
     }
