@@ -18,6 +18,8 @@ monoforge is the struct-family factory: stamp a fleet repo from proven template 
 
 **The link check comes back on.** `docs/freestruct.config.yml` carried `linkCheck: false` - a workaround parked under freestruct 1.1.0, whose strict link checker had no `basePath` awareness and false-failed every baseurl'd site on its own nav. The comment named the lift condition ("when #32 ships in a pinned release"), and the family now pins freestruct 1.2.0, which carries the basePath-aware strip. The default strict link gate is back on: broken internal links fail the build again.
 
+**The release ladder's `verify` job waits for `release`.** `verify` declares `needs: [publish, release]` (was a bare `needs: publish`), closing a race where it ran CONCURRENTLY with the release mint: on a fresh cut the registry read replicas had not settled and the tarball was not yet attached, so a publish that in fact succeeded failed red and needed a manual re-run (first seen on the packstruct 1.1.0 cut). The release-attach poll widened 120s -> 300s and the registry poll 120s -> 360s, and the release-lane test pins the dependency so a regression fails by name.
+
 ## Quality layer
 
 `npm test` and `npm run check` are green at 1.1.0, with the stamp-law pin and the template-float fixture both proven to bite.
