@@ -117,16 +117,16 @@ test('the CLI loader exits 0 on a clean tree and 1 on a violation', () => {
   }
 })
 
-// The acceptance the issue names: the spec's own harness, 8/8. Skipped only if
+// The acceptance the issue names: the spec's own harness, 9/9. Skipped only if
 // packstruct is not installed (the root battery installs it at its exact pin).
-test('the spec harness honors the loader 8/8', () => {
+test('the spec harness honors the loader 9/9', () => {
   const bin = join(ROOT, 'node_modules', '.bin', 'packstruct')
   if (!existsSync(bin)) {
     console.log('  (skipped: packstruct not installed - the battery installs it at its exact pin)')
     return
   }
   const out = execFileSync(bin, ['audit-conformance', '.', '--loader', 'node src/packs.mjs {packs}'], { cwd: ROOT, encoding: 'utf8' })
-  assert.match(out, /8\/8 case\(s\) honored/)
+  assert.match(out, /9\/9 case\(s\) honored/)
 })
 
 // The pack lane over this repo's own tree: the pack's fixtures prove its

@@ -74,7 +74,7 @@ monoforge packs [dir]
 monoforge loader <dir>
 ```
 
-`packs` loads every pack under `packs/public` through `src/packs.mjs`, arms each with a read-only view of `dir` (default: the pack's own clean fixture, a representative stamped tree), runs it, and prints the verdict rows. A new `EXPLOITED` verdict fails the lane; `BOUNDED` never reads as green but does not fail it. `loader` is the bare SPEC loader: exit 0 clean, 1 violations, 2 usage, with every refusal naming the pack. `src/packs.mjs` is graded by the SPEC's own harness - `packstruct audit-conformance . --loader "node src/packs.mjs {packs}"` honors it 8/8.
+`packs` loads every pack under `packs/public` through `src/packs.mjs`, arms each with a read-only view of `dir` (default: the pack's own clean fixture, a representative stamped tree), runs it, and prints the verdict rows. A new `EXPLOITED` verdict fails the lane; `BOUNDED` never reads as green but does not fail it. `loader` is the bare SPEC loader: exit 0 clean, 1 violations, 2 usage, with every refusal naming the pack. `src/packs.mjs` is graded by the SPEC's own harness - `packstruct audit-conformance . --loader "node src/packs.mjs {packs}"` honors it 9/9.
 
 ## The storage seam - stamp from a worker, or from memory
 
