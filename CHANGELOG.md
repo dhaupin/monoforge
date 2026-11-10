@@ -6,6 +6,27 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### 2026-11-10 - light mode by default (web + docs)
+
+Owner directive: the family defaults to light. The product sites and docs sites shipped dark-first (a persisted `light` was the opt-in); now light is the first paint and a persisted `dark` theme is the opt-in. Shape: `<html>` pins `data-theme="light"`, the pre-paint bootstrap applies only a persisted `dark`, and the `theme-color` meta flips to the light paper. The CSS token blocks are untouched (the light block is already the second half of one set), so no palette, toggle handler, or gate changed.
+
+- `web/index.html` - `<html data-theme="light">`; bootstrap applies a persisted `dark`; `theme-color` light (`#f5f6fa`).
+- `docs/_layouts/default.html` - `<html data-theme="light">`; bootstrap inverted; `color-scheme` `light dark`.
+- `templates/monoforge/docs/assets/css/style.css` - the dark-only stamp sheet becomes light (`--bg #f4f5ee`), so a stamped site is light from birth.
+- `web/public/site.webmanifest` - PWA `theme_color`/`background_color` -> light (`#f5f6fa`).
+- Receipts: `npm test` 11/11; `npm run check` green; docs-lint clean.
+
+
+### 2026-11-03 - breadcrumbs on (engine + this site)
+
+Google Search Console showed the family's properties under a breadcrumbs enhancement with 0 results. Recon split the fleet: the docs sites run freestruct (auto BreadcrumbList since 1.1.0); the product sites run prestruct, whose `buildJsonLd()` is site-wide by contract and could never emit a per-route trail. prestruct gained engine-level `breadcrumb: true` (injectMeta owns the route path), and this repo turned the discovery surface on in its configs.
+
+- `docs/freestruct.config.yml` + `templates/monoforge/docs/freestruct.config.yml` - `breadcrumb: true`, so every stamped fleet repo inherits it.
+- `web/ssr.config.js` - `breadcrumb: true` (active once the prestruct engine feature ships).
+- Receipts: docs config validates against the pinned engine; docs sync:check PASS where generated.
+- No version bump; a discovery-surface opt-in.
+
+
 ### Changed
 
 - **The family prestruct floor moves to `^1.3.0`.** `scripts/check-prestruct-pins.cjs` now refuses any declaration below 1.3.0 (the SSRF-guard security round), so every `prestruct` declaration and web lockfile moved with it; the guard's own battery gains the inverse case - the old `^1.2.0` floor now fails.
