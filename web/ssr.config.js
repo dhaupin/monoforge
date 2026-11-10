@@ -7,6 +7,7 @@
 export default {
   siteUrl:  'https://monoforge.creadev.org',
   siteName: 'monoforge',
+  breadcrumb: true,
   author:   'dhaupin',
   tagline:  'The struct-family factory: stamp fleet repos from proven template blocks, doctor them for truth, lock them verifiably.',
   ogImage:  'https://monoforge.creadev.org/og-image.png',
