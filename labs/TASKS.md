@@ -142,3 +142,6 @@ The family carried four docs topologies - freestruct's `docs-lane.yml`, coreforg
 
 
 - **The link check comes back on (2026-11-04 sweep).** `docs/freestruct.config.yml` carried `linkCheck: false` - a workaround parked under freestruct 1.1.0, whose strict link checker had no `basePath` awareness and false-failed every baseurl'd site on its own nav (freestruct#32). The parked comment named the lift condition: "when #32 ships in a pinned release." The family now pins freestruct 1.2.0 (the basePath-aware strip), so the toggle returns to `linkCheck: true` and the default strict link gate is back on. Receipts: `npm test` 10/10, `npm run check` green.
+
+
+- **The .gitignore docs block carries the in-tree Jekyll + pagefind products (2026-11-10 sweep, coreforge#48).** Propagated from the coreforge adopter sweep (dhaupin/coreforge#52): a local `npm run docs` / `bundle exec jekyll build` + pagefind run drops its products beside the source, and the belt-and-suspenders block named only some of them. It now carries `docs/.jekyll-cache/`, `docs/.jekyll-metadata`, `docs/pagefind/`, and `docs/pagefind*`, so a local build leaves no untracked noise. No version bump.
