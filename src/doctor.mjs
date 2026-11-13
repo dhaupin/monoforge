@@ -21,6 +21,7 @@ export const CODE_BY_ID = {
   'bin-path': 'E_BIN_PATH',
   'exports-path': 'E_EXPORTS_PATH',
   'files-path': 'E_FILES_PATH',
+  'packs-undelivered': 'E_PACKS_UNDELIVERED',
   'publish-gate': 'E_PUBLISH_GATE',
   'publish-token': 'E_PUBLISH_TOKEN',
   'npm-test': 'E_NPM_TEST',
@@ -133,6 +134,22 @@ export default async function doctor(dir, opts = {}) {
         if (f.startsWith('!')) continue // negation: npm's exclude mechanism inside the whitelist, never a must-exist path (prestruct beta class #2)
         const p3 = join(dir, f)
         if (!existsSync(p3) && !f.includes('*')) fail('files-path', `files entry ${f} does not exist in the tree`, f)
+      }
+      // The inverse of files-path (poststruct#79): a COMMITTED pack must be
+      // DELIVERED. npm honours `files`, so a pack tree excluded there is
+      // invisible to `npm i <pkg>` even though it is committed and green. A
+      // tree with no packs/public/ stays silent - this is canon-free, it only
+      // bites a repo that already chose to carry packs.
+      const packsRoot = join(dir, 'packs', 'public')
+      if (existsSync(packsRoot)) {
+        let packDirs = []
+        try { packDirs = readdirSync(packsRoot, { withFileTypes: true }).filter((e) => e.isDirectory()).map((e) => e.name) } catch { packDirs = [] }
+        const whitelist = pkg.files || []
+        const barePacks = whitelist.some((f) => f === 'packs' || f === 'packs/')
+        for (const name of packDirs) {
+          const covered = barePacks || whitelist.some((f) => f === `packs/public/${name}` || f === `packs/public/${name}/`)
+          if (!covered) fail('packs-undelivered', `committed pack packs/public/${name}/ is not delivered by package.json \`files\` - npm would drop it from the tarball (add "packs/" or "packs/public/${name}")`, `packs/public/${name}`)
+        }
       }
       if (!pkg.description || pkg.description.length < 10) warn('description', 'package.json description missing or too thin')
       if ((pkg.engines?.node || '') < '>=20') warn('engines', 'engines.node floor not >=20 (house runtime floor)')

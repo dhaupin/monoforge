@@ -19,6 +19,7 @@
       "E_LOCK_REFUSED": "lock refused because the doctor reported at least one failure",
       "E_NPM_TEST": "npm test failed over the tree",
       "E_PACKAGE_JSON": "package.json is not valid JSON",
+      "E_PACKS_UNDELIVERED": "a committed packs/public/<name>/ pack is not delivered by package.json `files` (npm would drop it from the tarball, poststruct#79)",
       "E_PROFILE_UNKNOWN": "factory.json profile is not a known profile",
       "E_PUBLISH_GATE": "publish.yml does not refuse 0.x refs (the OIDC ladder gate)",
       "E_PUBLISH_TOKEN": "publish.yml references a publish token (the law is OIDC only)",
