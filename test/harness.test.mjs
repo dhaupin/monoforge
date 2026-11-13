@@ -12,7 +12,7 @@
 // tree, and the registry is the real spec file.
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { mkdtempSync, rmSync, writeFileSync, readFileSync, existsSync, readdirSync } from 'node:fs'
+import { mkdtempSync, mkdirSync, rmSync, writeFileSync, readFileSync, existsSync, readdirSync } from 'node:fs'
 import { join } from 'node:path'
 import { tmpdir } from 'node:os'
 import '../src/fs-node.mjs' // install the node:fs default adapter
@@ -85,6 +85,26 @@ test('a doctor over an unfilled slot returns a typed refusal naming the slot', a
     const slotRefusal = r.refusals.find((x) => x.code === 'E_TRUTH_SLOT' && x.slot === 'SLOT.md')
     assert.ok(slotRefusal, `expected an E_TRUTH_SLOT naming SLOT.md, got ${JSON.stringify(r.refusals)}`)
     assert.match(slotRefusal.detail, /FORGE-TODO/)
+  } finally { rmSync(dir, { recursive: true, force: true }) }
+})
+
+test('a committed pack the files whitelist omits is a typed E_PACKS_UNDELIVERED refusal (poststruct#79)', async () => {
+  const dir = mkdtempSync(join(tmpdir(), 'mf-packs-'))
+  try {
+    const pkg = (files) => JSON.stringify({ name: 'packs-probe', version: '1.0.0', description: 'a packs delivery probe', files })
+    writeFileSync(join(dir, 'package.json'), pkg(['package.json']))
+    mkdirSync(join(dir, 'packs', 'public', 'probe-pack'), { recursive: true })
+    writeFileSync(join(dir, 'packs', 'public', 'probe-pack', 'pack.json'), JSON.stringify({ schemaVersion: 1, name: 'probe-pack', version: '0.1.0', entry: 'index.js' }))
+
+    // The committed pack is not delivered -> a typed refusal naming the pack dir.
+    const r = await run('doctor', dir)
+    const hit = r.refusals.find((x) => x.code === 'E_PACKS_UNDELIVERED' && x.slot === 'packs/public/probe-pack')
+    assert.ok(hit, `expected an E_PACKS_UNDELIVERED naming packs/public/probe-pack, got ${JSON.stringify(r.refusals)}`)
+
+    // The delivery is fixed by whitelisting packs/ -> the refusal clears.
+    writeFileSync(join(dir, 'package.json'), pkg(['package.json', 'packs/']))
+    const r2 = await run('doctor', dir)
+    assert.ok(!r2.refusals.some((x) => x.code === 'E_PACKS_UNDELIVERED'), 'whitelisting packs/ must clear the refusal')
   } finally { rmSync(dir, { recursive: true, force: true }) }
 })
 

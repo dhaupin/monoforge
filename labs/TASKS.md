@@ -216,3 +216,12 @@ Unblocked by prestruct 1.5.0 (it widened its peer ceilings `react`/`react-dom` `
 - **web/vite.config.js.** `manualChunks` is a FUNCTION (the object form vite <=7 accepted is rejected by rolldown); `minify: 'esbuild'` dropped (esbuild unbundled, oxc default).
 - **Proof.** The site bakes 8/8 pages, audit 0 failures, on the new matrix; the repo's own battery + `check` stay green.
 - **No version bump** (the repo's own landing site, not the shipped surface; the crashtest `deps: web toolchain` precedent).
+
+---
+
+### 2026-11-13 - session: the v1.2.0 doctor pack-delivery check (poststruct#79)
+
+- **The gap (measured).** monoforge already ships its packs (`files` carries `packs/`, pinned in `test/distribution-run.mjs`), so the factory itself was never the bug. But the doctor - the battery every STAMPED repo runs at mint time - carried only the INVERSE of the delivery law: `files-path` refuses a `files` entry that does not exist in the tree, and nothing refused a committed `packs/public/<name>/` that `files` would drop from the tarball. A repo minted by the factory could therefore commit a pack and publish a pack-less tarball, green the whole way - the exact poststruct#79 class, in the factory's own output.
+- **The fix.** A new doctor check `packs-undelivered` (`E_PACKS_UNDELIVERED`): when a tree carries `packs/public/<name>/`, the doctor refuses any pack dir not delivered by `files` (neither a bare `packs/` nor an exact `packs/public/<name>`). Canon-free by construction - a tree with no `packs/public/` stays silent - so it bites only a repo that already carries packs. The code is registered in `spec/refusals.json` (the harness refuses an unregistered code). `test/harness.test.mjs` gains the bite both ways: an omitted pack refuses by name, whitelisting `packs/` clears it.
+- **The cut (1.1.1 -> 1.2.0, minor).** A new doctor capability is a minor. The version-truth surfaces moved together: `package.json`, `package-lock.json`, the README H1 status copy. `## [Unreleased]` is cut to `## [1.2.0] - 2026-11-13` (the /web family-matrix entry from the previous session rides the cut; its "no version bump" closer is reworded to name the ride). Adds the v1.2.0 release post and its index row; the stale v1.1.0 index row ("staged") is corrected to "on npm".
+- **No tag yet** - the tag is the owner gate (the OIDC ladder publishes on `v*`).
