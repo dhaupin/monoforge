@@ -1,6 +1,6 @@
 {
   "name": "monoforge",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "The struct-family factory: stamps a new fleet repo from proven template blocks, doctors it for truth, and locks it. Generated green is never shipped: the doctor refuses placeholder text and unverified gates.\n",
   "type": "module",
   "bin": {
