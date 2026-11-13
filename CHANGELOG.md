@@ -6,6 +6,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-11-13
+
+### 2026-11-13 - the doctor refuses an undelivered pack (poststruct#79)
+
+The factory mints repos that carry crashtest packs, and the family law is that a committed pack RIDES the published tarball - a consumer arms it by an exact npm pin. npm honours `package.json` `files`, so a pack tree excluded there is invisible to `npm i <pkg>` even though it is committed and green. monoforge itself already ships `packs/` (pinned in `test/distribution-run.mjs`), but the doctor - the battery every stamped repo runs - had only the INVERSE check (`files-path`: a `files` entry must exist in the tree).
+
+- **New check `packs-undelivered` (`E_PACKS_UNDELIVERED`).** When a tree carries `packs/public/<name>/`, the doctor refuses any pack dir that `package.json` `files` would not deliver (neither a bare `packs/` nor an exact `packs/public/<name>`). Canon-free: a tree with no `packs/public/` stays silent, so the check only bites a repo that already chose to carry packs.
+- `test/harness.test.mjs` pins the bite both ways (an omitted pack refuses by name; whitelisting `packs/` clears it) and the refusal code is registered in `spec/refusals.json`.
+
 ### 2026-11-13 - the /web family matrix (React 19 + Vite 8, prestruct ^1.5.0)
 
 The landing site moves onto the matrix prestruct 1.5.0 published: `react`/`react-dom` `^18.3.1 -> ^19.3.1`, `vite` `^5.4.0 -> ^8.3.7`, `@vitejs/plugin-react` `^4.3.1 -> ^6.3.0`, `prestruct` `^1.3.0 -> ^1.5.0`. The site bakes 8/8 pages with a clean audit on the new matrix.
@@ -14,7 +23,7 @@ The landing site moves onto the matrix prestruct 1.5.0 published: `react`/`react
 - **The web lane declares a Node floor** (`web/package.json` `engines.node >=20.19`, vite 8's floor). The repo's own battery still runs on Node 18/20; only the site build needs the newer floor.
 - **The stamp-engine canary declares its bundler.** `web/scripts/build-canary.mjs` imports `esbuild` directly to bundle the engine for the workerd canary; it had been riding vite 5's transitive tree, and vite 8 no longer provides it, so `esbuild ^0.28.2` is now a declared `web` devDependency (the bundle still asserts zero `node:*` imports).
 
-No version bump; the repo's own landing site, not the shipped surface.
+No version bump on its own; the repo's own landing site, not the shipped surface - it rides 1.2.0 alongside the doctor check above.
 
 
 ## [1.1.1] - 2026-11-12
