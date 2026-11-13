@@ -195,3 +195,12 @@ The family release-readiness pass (owner-driven) swept all eight island sites. O
 - **Shape (receipt).** `dhaupin/creadev` PR #38 (`fca49c6`); the family-wide rollout is tracked on `dhaupin/railyard#31`.
 - **Guard.** railyard's `scripts/check-dependabot.cjs` (the shape) + `scripts/check-dependabot.test.cjs` (it bites), wired into railyard CI.
 - **No version bump.**
+
+### 2026-11-12 - session: the v1.1.1 cut
+
+The family release-readiness pass (owner-driven). This repo's cut:
+
+- **Version.** `1.1.0 -> 1.1.1` (package.json + the README H1 status copy). A patch: the family floors move to prestruct `^1.3.0`, the conformance count follows packstruct 1.1.0 to 9/9, and the docs lane tracks freestruct v1.3.0.
+- **Changelog.** `## [Unreleased]` cut to `## [1.1.1] - 2026-11-12`; entries stay verbatim.
+- **Announcement.** `docs/discussions/announcing-v1.1.1.md` + the index row.
+- **Release.** Branch -> PR -> `staging` -> PR -> `main`, then the `v1.1.1` tag drives the OIDC ladder.
