@@ -1,5 +1,5 @@
 ---
-permalink: discussions/announcing-v1.1.1
+permalink: discussions/announcing-v1.1.1/
 layout: default
 title: Announcing monoforge v1.1.1
 description: monoforge v1.1.1 - the family floors move to prestruct ^1.3.0, the conformance count follows packstruct 1.1.0 to 9/9, and the site follows the family shell.

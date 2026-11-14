@@ -20,7 +20,7 @@
     "packs/"
   ],
   "scripts": {
-    "test": "node test/run.mjs && node test/version-truth.mjs && node test/distribution-run.mjs && node --test test/templates.test.cjs test/workers-compat.test.mjs test/harness.test.mjs test/packs.test.mjs test/ship-from-download.test.cjs test/release-verify.test.cjs test/docs-frontmatter.test.cjs test/web-imports.test.cjs test/status.test.mjs && node --test test/check-action-pins.test.cjs && node --test test/check-prestruct-pins.test.cjs",
+    "test": "node test/run.mjs && node test/version-truth.mjs && node test/distribution-run.mjs && node --test test/templates.test.cjs test/workers-compat.test.mjs test/harness.test.mjs test/packs.test.mjs test/ship-from-download.test.cjs test/release-verify.test.cjs test/docs-frontmatter.test.cjs test/web-imports.test.cjs test/status.test.mjs test/docs-post-permalinks.test.mjs && node --test test/check-action-pins.test.cjs && node --test test/check-prestruct-pins.test.cjs",
     "lint:packs": "node bin/forge.mjs lint-packs --deep",
     "lint:pins": "node scripts/check-action-pins.cjs",
     "conform:packs": "packstruct audit-conformance . --loader \"node src/packs.mjs {packs}\"",
