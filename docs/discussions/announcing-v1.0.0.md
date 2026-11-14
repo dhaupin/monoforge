@@ -1,5 +1,5 @@
 ---
-permalink: discussions/announcing-v1.0.0
+permalink: discussions/announcing-v1.0.0/
 layout: default
 title: Announcing v1.0.0
 description: v1.0.0 ships the packstruct SPEC v1 packs loader, a headless stamp harness with typed refusals, and a re-stamp that never clobbers host-authored files.

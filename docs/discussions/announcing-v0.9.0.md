@@ -1,5 +1,5 @@
 ---
-permalink: discussions/announcing-v0.9.0
+permalink: discussions/announcing-v0.9.0/
 layout: default
 title: Announcing v0.9.0
 description: v0.9.0 ships the factory spine - the stamp verb, the truth battery, the doctor-gated lock, and the template blocks cut from two proven fleet repos.

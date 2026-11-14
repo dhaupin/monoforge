@@ -1,5 +1,5 @@
 ---
-permalink: discussions/announcing-v1.2.0
+permalink: discussions/announcing-v1.2.0/
 layout: default
 title: Announcing monoforge v1.2.0
 description: monoforge v1.2.0 - the doctor refuses a committed pack the package.json files whitelist would not deliver, so a minted repo cannot silently ship a pack-less tarball.
