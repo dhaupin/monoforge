@@ -225,3 +225,10 @@ Unblocked by prestruct 1.5.0 (it widened its peer ceilings `react`/`react-dom` `
 - **The fix.** A new doctor check `packs-undelivered` (`E_PACKS_UNDELIVERED`): when a tree carries `packs/public/<name>/`, the doctor refuses any pack dir not delivered by `files` (neither a bare `packs/` nor an exact `packs/public/<name>`). Canon-free by construction - a tree with no `packs/public/` stays silent - so it bites only a repo that already carries packs. The code is registered in `spec/refusals.json` (the harness refuses an unregistered code). `test/harness.test.mjs` gains the bite both ways: an omitted pack refuses by name, whitelisting `packs/` clears it.
 - **The cut (1.1.1 -> 1.2.0, minor).** A new doctor capability is a minor. The version-truth surfaces moved together: `package.json`, `package-lock.json`, the README H1 status copy. `## [Unreleased]` is cut to `## [1.2.0] - 2026-11-13` (the /web family-matrix entry from the previous session rides the cut; its "no version bump" closer is reworded to name the ride). Adds the v1.2.0 release post and its index row; the stale v1.1.0 index row ("staged") is corrected to "on npm".
 - **No tag yet** - the tag is the owner gate (the OIDC ladder publishes on `v*`).
+
+
+---
+
+### 2026-11-13 (cont.) - the release posts were invisible to the sitemap (permalink shape)
+
+Every `docs/discussions/announcing-vX.Y.Z.md` carried a dotted, slashless permalink; Jekyll emits the page extensionless (Ruby reads the `.0` as a file extension) and freestruct's `.html`/`.htm` scanner never sees it - no sitemap `<loc>`, no og/canonical, though the pages serve 200. The live sitemap listed none of them. Fix: trailing-slash every permalink; rebuild the index (rows link the slash form, newest first, stale "staged for the tag" markers corrected against the registry). Two biting tests in the post-permalinks test. Ported from eyestruct.

@@ -1,5 +1,5 @@
 ---
-permalink: discussions/announcing-v1.1.0
+permalink: discussions/announcing-v1.1.0/
 layout: default
 title: Announcing v1.1.0
 description: v1.1.0 fixes a stamp that could re-insert the token it replaced, folds the docs lane into the family's one reusable workflow, and turns the link check back on.
