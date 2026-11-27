@@ -1,5 +1,8 @@
 # labs - monoforge (staging mount)
 
+**2026-11-03 - the npm parity gate earned its teeth.** The family law is "a new law ships with a test", but this gate had stopped biting: it passed if any one of several surfaces carried the npm link, so a deleted footer link went unnoticed (measured: docs layout link removed, old gate 3 pass / 0 fail). Rewritten as a predicate over an explicit REQUIRED surface list, resolving the literal URL, {{ site.npm_url }} and {{ site.title }} against docs/_config.yml, with two mutation tests proving a stripped surface and a wrong-package link are both refused. Verified both ways: clean tree green, deleted link red (2 fail). monoforge's docs title is `monoforge docs`, so `{{ site.title }}` cannot build its npm URL; the footer carries the literal and the gate says so.
+
+
 Rolling work log for the monoforge staging tree, in the family TASKS convention. The two PRDs here are carried byte-exact from dhaupin/monoforge (labs/, upstream commit f8e45fb):
 
 - prd-factory.md - the factory itself (new / doctor / lock / cut verbs)
